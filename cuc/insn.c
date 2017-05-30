@@ -43,13 +43,22 @@ const cuc_known_insn known[II_LAST + 1] = {
   {"and", 1, "assign \1 = \2 & \3;"},
   {"or", 1, "assign \1 = \2 | \3;"},
   {"xor", 1, "assign \1 = \2 ^ \3;"},
+/** MoMA begin **/
+/* backup begin */
   {"mul", 1, "assign \1 = \2 * \3;"},
-
+/* backup end */
+//  {"mul", 1, "assign \1 = (\2 * \3) % 1000;"},
+/** MoMA end **/
   {"srl", 0, "assign \1 = \2 >> \3;"},
   {"sll", 0, "assign \1 = \2 << \3;"},
+/** MoMA begin **/
+/* backup begin */
   {"sra", 0, "assign \1 = ({32{\2[31]}} << (6'd32-{1'b0, \3}))\n\
                  | \2 >> \3;"},
-
+/* backup end */
+//  {"sra", 0, "assign \1 = (({32{\2[31]}} << (6'd32-{1'b0, \3}))\n\
+                 | \2 >> \3) % 1000;"},
+/** MoMA end **/
   {"lb", 0, "always @(posedge clk)"},
   {"lh", 0, "always @(posedge clk)"},
   {"lw", 0, "always @(posedge clk)"},
@@ -382,6 +391,29 @@ apply_edge_condition (cuc_insn * ii)
 	}
       else
 	break;
+/** MoMA begin **/
+    case II_MOD:
+      if (ii->opt[2] & OPT_CONST && c == 0)
+	{
+	  change_insn_type (ii, II_ADD);
+	  ii->op[1] = 0;
+	  ii->opt[1] = OPT_CONST;
+	  ii->op[2] = 0;
+	  ii->opt[2] = OPT_CONST;
+	  return 1;
+	}
+      else if (ii->opt[2] & OPT_CONST && c == 1) // what is this c for?
+	{
+	  change_insn_type (ii, II_ADD);
+	  ii->op[1] = c;
+	  ii->opt[1] = OPT_CONST;
+	  ii->op[2] = 0;
+	  ii->opt[2] = OPT_CONST;
+	  return 1;
+	}
+      else
+	break;
+/** MoMA end **/
     case II_SRL:
       if (ii->opt[2] & OPT_CONST && c == 0)
 	{
@@ -1055,7 +1087,12 @@ optimize_tree (cuc_func * f)
 		    else if (ii->index == II_SRL)
 		      value = ii->op[1] >> ii->op[2];
 		    else if (ii->index == II_MUL)
+/** MoMA begin **/
+/* backup begin */
 		      value = ii->op[1] * ii->op[2];
+/* backup end */
+//		      value = (ii->op[1] * ii->op[2]) % 1000;
+/** MoMA end **/
 		    else if (ii->index == II_OR)
 		      value = ii->op[1] | ii->op[2];
 		    else if (ii->index == II_XOR)

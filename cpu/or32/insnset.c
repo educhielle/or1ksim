@@ -26,6 +26,9 @@
 /* This program is commented throughout in a fashion suitable for processing
    with Doxygen. */
 
+/** MoMA begin **/
+//#include <gmp.h> // included in ./cpu/or1k/arch.h
+/** MoMA end **/
 
 INSTRUCTION (l_add) {
   orreg_t temp1, temp2, temp3;
@@ -404,8 +407,12 @@ INSTRUCTION (l_mul) {
   /* Compute initially in 64-bit */
   ltemp1 = (LONGEST) temp1;
   ltemp2 = (LONGEST) temp2;
+/** MoMA begin **/
+/* backup begin */
   ltemp0 = ltemp1 * ltemp2;
-
+/* backup end 
+  ltemp0 = (ltemp1 * ltemp2) % 1000;
+/** MoMA end **/
   temp0  = (orreg_t) (ltemp0  & 0xffffffffLL);
   SET_PARAM0 (temp0);
 
@@ -608,7 +615,12 @@ INSTRUCTION (l_sll) {
 INSTRUCTION (l_sra) {
   orreg_t temp1;
   
+/** MoMA begin **/
+/* backup begin */
   temp1 = (orreg_t)PARAM1 >> PARAM2;
+/* backup end 
+  temp1 = (orreg_t)(PARAM1 >> PARAM2) % 1000;
+/** MoMA end **/
   SET_PARAM0(temp1);
   /* runtime.sim.cycles += 2; */
 }
@@ -1254,3 +1266,286 @@ INSTRUCTION (l_cust4) {
 }
 INSTRUCTION (lf_cust1) {
 }
+
+/** MoMA begin **/
+/* MOD instruction */
+INSTRUCTION (l_mod) {
+  orreg_t temp1;
+  temp1 = (orreg_t)PARAM1 % PARAM2;
+  SET_PARAM0(temp1);
+}
+
+/* Instruction to get data from MoMA registers. l.mfspr could be used, but it may require supervisor mode */
+INSTRUCTION (moma_get) {
+	uorreg_t offset = PARAM1 | PARAM2;
+	uorreg_t value;
+	
+	if ((offset >= 0) && (offset < MOMA_LENGTH))
+		value = cpu_state.sprs[SPR_MOMA + offset];
+	else
+		value = cpu_state.sprs[SPR_MOMA_PARTLEN];
+	
+	SET_PARAM0(value);
+}
+
+/* Instruction to set the MoMA registers. l.mtspr could be used, but it requires supervisor mode */
+/* moma.set rA,rB,K */
+INSTRUCTION (moma_set) {
+	uorreg_t offset = PARAM0;
+	uorreg_t value = PARAM1 | PARAM2;
+	
+	int i;
+	
+	if ((offset >= 0) && (offset < MOMA_LENGTH))
+		cpu_state.sprs[SPR_MOMA + offset] = value;
+	else if (offset == MOMA_LENGTH + 1) {
+		if ((value < MOMA_WORD_SIZE) || (value > MOMA_MAX_REG_SIZE)) value = MOMA_MAX_REG_SIZE;
+		else {
+			for (i = 0; value != 0; i++, value >> 1);
+			value = 1 << (i-1);
+		}
+		cpu_state.sprs[SPR_MOMA_PARTLEN] = value;
+	}
+}
+
+/* moma.seto rA, rB, K to moma.seto K(rA),rB,L */
+INSTRUCTION (moma_seto) {
+	uorreg_t k = PARAM2 & 0xFFC0;
+	uorreg_t l = PARAM2 & 0x003F;
+
+	uorreg_t offset = PARAM0 + k;
+	uorreg_t value = PARAM1 | l;
+	
+	int i;
+	
+	if ((offset >= 0) && (offset < MOMA_LENGTH))
+		cpu_state.sprs[SPR_MOMA + offset] = value;
+	else if (offset == MOMA_LENGTH + 1) {
+		if ((value < MOMA_WORD_SIZE) || (value > MOMA_MAX_REG_SIZE)) value = MOMA_MAX_REG_SIZE;
+		else {
+			for (i = 0; value != 0; i++, value >> 1);
+			value = 1 << (i-1);
+		}
+		cpu_state.sprs[SPR_MOMA_PARTLEN] = value;
+	}
+}
+
+/* moma.seti K,L */
+INSTRUCTION (moma_seti) {
+	uorreg_t offset = PARAM0;
+	uorreg_t value = PARAM1;
+		
+	int i;
+	
+	if ((offset >= 0) && (offset < MOMA_LENGTH))
+		cpu_state.sprs[SPR_MOMA + offset] = value;
+	else if (offset == MOMA_LENGTH + 1) {
+		if ((value < MOMA_WORD_SIZE) || (value > MOMA_MAX_REG_SIZE)) value = MOMA_MAX_REG_SIZE;
+		else {
+			for (i = 0; value != 0; i++, value >> 1);
+			value = 1 << (i-1);
+		}
+		cpu_state.sprs[SPR_MOMA_PARTLEN] = value;
+	}
+}
+
+/* XOR operation between SPR_MOMA_DATA_1 and SPR_MOMA_DATA_2. Result is stored in SPR_MOMA_DATA_R */
+INSTRUCTION (moma_xor) {
+	uorreg_t partlen = (uorreg_t) cpu_state.sprs[SPR_MOMA_PARTLEN];
+	unsigned int parts = (unsigned int) MOMA_MAX_REG_SIZE / partlen;
+	unsigned int ratio = (unsigned int) partlen / MOMA_WORD_SIZE;
+	unsigned int offset;
+
+	uorreg_t k = (uorreg_t) PARAM0;
+	uorreg_t l = (uorreg_t) PARAM1;
+	if (l > parts) l = parts;
+
+	for (; k <= l; k++) {
+		offset = ratio * k;
+		cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_1 + offset] ^ cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
+	}
+}
+
+/* dataR[K to L] = data1[K to L] and data2[K to L] */
+INSTRUCTION (moma_and) {
+	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
+	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
+	unsigned int ratio = partlen / MOMA_WORD_SIZE;
+	unsigned int offset;
+
+	uorreg_t k = PARAM0;
+	uorreg_t l = PARAM1;
+	if (l > parts) l = parts;
+
+	for (; k <= l; k++) {
+		offset = ratio * k;
+		cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_1 + offset] & cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
+	}
+}
+
+/* dataR[K to L] = data1[K to L] or data2[K to L] */
+INSTRUCTION (moma_or) {
+	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
+	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
+	unsigned int ratio = partlen / MOMA_WORD_SIZE;
+	unsigned int offset;
+
+	uorreg_t k = PARAM0;
+	uorreg_t l = PARAM1;
+	if (l > parts) l = parts;
+
+	for (; k <= l; k++) {
+		offset = ratio * k;
+		cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_1 + offset] | cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
+	}
+}
+
+/* if (N == 0) or (N ==  1) data1[K to L] = not data1[K to L] // in HW: if (N[1] == 0) */
+/* if (N == 0) or (N ==  2) data2[K to L] = not data2[K to L] // in HW: if (N[0] == 0) */
+/* if (N == 0) or (N == -1) dataR[K to L] = not dataR[K to L] // in HW: if (N[0] xor N[1] == 0) */
+/*INSTRUCTION (moma_not) {
+	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
+	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
+	unsigned int ratio = partlen / MOMA_WORD_SIZE;
+	unsigned int offset;
+
+	uorreg_t k = PARAM0;
+	uorreg_t l = PARAM1;
+	orreg_t n = PARAM2;
+	if (l > parts) l = parts;
+
+	for (; k <= l; k++) {
+		offset = ratio * k;
+		if ((n & 0x1) == 0) cpu_state.sprs[SPR_MOMA_DATA_1 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_1 + offset];
+		if ((n & 0x2) == 0) cpu_state.sprs[SPR_MOMA_DATA_2 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
+		if (((n & 0x1) ^ (n & 0x2)) == 0) cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_R + offset];
+	}
+}*/
+
+INSTRUCTION (moma_not) {
+	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
+	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
+	unsigned int ratio = partlen / MOMA_WORD_SIZE;
+	unsigned int offset;
+
+	uorreg_t k = PARAM0;
+	uorreg_t l = PARAM1;
+	if (l > parts) l = parts;
+
+	for (; k <= l; k++) {
+		offset = ratio * k;
+		cpu_state.sprs[SPR_MOMA_DATA_1 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_1 + offset];
+		cpu_state.sprs[SPR_MOMA_DATA_2 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
+		cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_R + offset];
+	}
+}
+
+INSTRUCTION (moma_not1) {
+	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
+	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
+	unsigned int ratio = partlen / MOMA_WORD_SIZE;
+	unsigned int offset;
+
+	uorreg_t k = PARAM0;
+	uorreg_t l = PARAM1;
+	if (l > parts) l = parts;
+
+	for (; k <= l; k++) {
+		offset = ratio * k;
+		cpu_state.sprs[SPR_MOMA_DATA_1 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_1 + offset];
+	}
+}
+
+INSTRUCTION (moma_not2) {
+	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
+	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
+	unsigned int ratio = partlen / MOMA_WORD_SIZE;
+	unsigned int offset;
+
+	uorreg_t k = PARAM0;
+	uorreg_t l = PARAM1;
+	if (l > parts) l = parts;
+
+	for (; k <= l; k++) {
+		offset = ratio * k;
+		cpu_state.sprs[SPR_MOMA_DATA_2 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
+	}
+}
+
+INSTRUCTION (moma_notr) {
+	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
+	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
+	unsigned int ratio = partlen / MOMA_WORD_SIZE;
+	unsigned int offset;
+
+	uorreg_t k = PARAM0;
+	uorreg_t l = PARAM1;
+	if (l > parts) l = parts;
+
+	for (; k <= l; k++) {
+		offset = ratio * k;
+		cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_R + offset];
+	}
+}
+
+/* HADD operation using strings and gmp library */
+INSTRUCTION (moma_hadd) {
+	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
+	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
+	unsigned int ratio = partlen / MOMA_WORD_SIZE;
+
+	uorreg_t k = PARAM0;
+	uorreg_t l = PARAM1;
+	if (l > parts) l = parts;
+
+	unsigned int offset, i;
+
+	// assign static variables to big numbers
+	mpz_t n, data1, data2, data1x2, dataR, baseWord;
+	mpz_init(n);
+	mpz_init_set_str(baseWord, "100000000", 16);
+	for (i = 0; i < ratio; i++) {
+		mpz_mul(n, n, baseWord);
+		mpz_add_ui(n, n, cpu_state.sprs[SPR_MOMA_N + i]);
+	}
+
+	
+	// for each part in the range
+	for (; k <= l; k++) {
+		offset = ratio * k;
+
+		// initializing big numbers
+		mpz_init(data1);
+		mpz_init(data2);
+			
+		// copy values of N, data_1 and data_2 to mpz_t variables
+		for (i = 0; i < ratio; i++) {
+			mpz_mul(data1, data1, baseWord);
+			mpz_mul(data2, data2, baseWord);
+			mpz_add_ui(data1, data1, cpu_state.sprs[SPR_MOMA_DATA_1 + offset + i]);
+			mpz_add_ui(data2, data2, cpu_state.sprs[SPR_MOMA_DATA_2 + offset + i]);
+		}
+		
+		// multiply
+		mpz_init(data1x2);
+		mpz_mul(data1x2, data1, data2);
+		mpz_clear(data1);
+		mpz_clear(data2);
+		
+		// modulo N
+		mpz_init(dataR);
+		mpz_mod(dataR, data1x2, n);
+		mpz_clear(data1x2);
+		
+		// store result in data_r registers
+		for (i = ratio-1; i >= 0; i--) {
+			cpu_state.sprs[SPR_MOMA_DATA_R + offset + i] = (uorreg_t) mpz_get_ui(dataR);
+			mpz_tdiv_q(dataR, dataR, baseWord);
+		}
+		mpz_clear(dataR);
+	}
+	mpz_clear(n);
+	mpz_clear(baseWord);
+}
+/** MoMA end **/
+

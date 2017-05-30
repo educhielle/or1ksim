@@ -304,6 +304,9 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
    EF (l_mac), 0, it_mac},
   {"l.lwa", "rD,I(rA)", "01 0xB  DDDDD AAAAA IIII IIII IIII IIII",
    EF (l_lwa), 0, it_load},
+
+/** MoMA begin **/
+/** Backup begin **
   {"l.cust1", "", "01 0xC  ----- ----- ---- ---- ---- ----",
    EF (l_cust1), 0, it_unknown},
   {"l.cust2", "", "01 0xD  ----- ----- ---- ---- ---- ----",
@@ -312,6 +315,43 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
    EF (l_cust3), 0, it_unknown},
   {"l.cust4", "", "01 0xF  ----- ----- ---- ---- ---- ----",
    EF (l_cust4), 0, it_unknown},
+** Backup end **/
+  {"l.modi", "rD,rA,I", "01 0xC  DDDDD AAAAA IIII IIII IIII IIII",
+   EF (l_mod), 0, it_unknown},
+  {"l.mod", "rD,rA,rB", "01 0xD  DDDDD AAAAA BBBB B--- ---- 0x6",
+   EF (l_mod), 0, it_unknown},
+
+//  {"moma.get", "rD,rA", "01 0xD  DDDDD AAAAA ---- ---- ---- 0x0",
+  {"moma.get", "rD,rA,K", "01 0xD  DDDDD AAAAA KKKK KKKK KK-- 0x0",
+   EF (moma_get), 0, it_move},
+
+//  {"moma.set", "rA,rB", "01 0xE  ----- AAAAA BBBB B--- ---- 0x0",
+  {"moma.set", "rA,rB,K", "01 0xE  KKKKK AAAAA BBBB BKKK KKKK KKKK",
+   EF (moma_set), 0, it_move},
+//  {"moma.seto", "K(rA),rB,L", "11 0xE  KKKKK AAAAA BBBB BKKK KKLL LLLL",
+  {"moma.seto", "rA,rB,K", "11 0xE  KKKKK AAAAA BBBB BKKK KKKK KKKK",
+   EF (moma_seto), 0, it_move},
+  {"moma.seti", "K,L", "11 0xF  KKKKK KKKKK LLLL LLLL LLLL LLLL",
+   EF (moma_seti), 0, it_move},
+
+  {"moma.xor", "K,L", "01 0xF  KKKKK KKLLL LLLL ---- ---- 0x0",
+   EF (moma_xor), 0, it_unknown},
+  {"moma.and", "K,L", "01 0xF  KKKKK KKLLL LLLL ---- ---- 0x1",
+   EF (moma_and), 0, it_unknown},
+  {"moma.or", "K,L", "01 0xF  KKKKK KKLLL LLLL ---- ---- 0x2",
+   EF (moma_or), 0, it_unknown},
+  {"moma.not", "K,L", "01 0xF  KKKKK KKLLL LLLL 00-- ---- 0x3",
+   EF (moma_not), 0, it_unknown},
+  {"moma.not1", "K,L", "01 0xF  KKKKK KKLLL LLLL 01-- ---- 0x3",
+   EF (moma_not1), 0, it_unknown},
+  {"moma.not2", "K,L", "01 0xF  KKKKK KKLLL LLLL 10-- ---- 0x3",
+   EF (moma_not2), 0, it_unknown},
+  {"moma.notr", "K,L", "01 0xF  KKKKK KKLLL LLLL 11-- ---- 0x3",
+   EF (moma_notr), 0, it_unknown},
+  {"moma.hadd", "K,L", "01 0xF  KKKKK KKLLL LLLL ---- ---- 0x4",
+   EF (moma_hadd), 0, it_unknown},
+
+/** MoMA end **/
 
   {"l.ld", "rD,I(rA)", "10 0x0  DDDDD AAAAA IIII IIII IIII IIII", EFI,
    0, it_load},
@@ -526,6 +566,8 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
   {"l.sfles", "rA,rB", "11 0x9  01101 AAAAA BBBB B--- ---- ----",
    EF (l_sfles), OR32_W_FLAG, it_compare},
 
+/** MoMA begin **/
+/** backup begin **
   {"l.cust5", "rD,rA,rB,L,K", "11 0xC  DDDDD AAAAA BBBB BLLL LLLK KKKK", EFI,
    0, it_unknown},
   {"l.cust6", "", "11 0xD  ----- ----- ---- ---- ---- ----", EFI,
@@ -534,6 +576,8 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
    0, it_unknown},
   {"l.cust8", "", "11 0xF  ----- ----- ---- ---- ---- ----", EFI,
    0, it_unknown},
+/** backup end **/
+/** MoMA end **/
 
 /* This section should not be defined in or1ksim, since it contains duplicates,
    which would cause machine builder to complain.  */

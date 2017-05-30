@@ -58,6 +58,9 @@
 #define II_NOP   25
 #define II_CALL  26
 #define II_LAST  26
+/** MoMA begin **/
+#define II_MOD   27
+/** MoMA end **/
 
 /* misc flags */
 #define II_MASK   0x0fff

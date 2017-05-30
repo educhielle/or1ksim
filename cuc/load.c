@@ -41,6 +41,10 @@ static const cuc_conv conv[] = {
 {"l.or",  II_OR }, {"l.ori",  II_OR},
 {"l.mul", II_MUL}, {"l.muli", II_MUL},
 
+/** MoMA begin **/
+{"l.mod",      II_MOD}, {"l.modi", II_MOD},
+/** MoMA end **/
+
 {"l.sra", II_SRA}, {"l.srai", II_SRA},
 {"l.srl", II_SRL}, {"l.srli", II_SRL},
 {"l.sll", II_SLL}, {"l.slli", II_SLL},

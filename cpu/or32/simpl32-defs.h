@@ -110,4 +110,20 @@ extern void lf_sfne_s PARAMS ((struct iqueue_entry *));
 extern void lf_sub_s PARAMS((struct iqueue_entry *));
 extern void l_none PARAMS((struct iqueue_entry *));
 
+/** MoMA begin **/
+extern void l_mod PARAMS((struct iqueue_entry *));
+extern void moma_get PARAMS((struct iqueue_entry *));
+extern void moma_set PARAMS((struct iqueue_entry *));
+extern void moma_seto PARAMS((struct iqueue_entry *));
+extern void moma_seti PARAMS((struct iqueue_entry *));
+extern void moma_xor PARAMS((struct iqueue_entry *));
+extern void moma_and PARAMS((struct iqueue_entry *));
+extern void moma_or PARAMS((struct iqueue_entry *));
+extern void moma_not PARAMS((struct iqueue_entry *));
+extern void moma_not1 PARAMS((struct iqueue_entry *));
+extern void moma_not2 PARAMS((struct iqueue_entry *));
+extern void moma_notr PARAMS((struct iqueue_entry *));
+extern void moma_hadd PARAMS((struct iqueue_entry *));
+/** MoMA end **/
+
 #endif	/* SIMPLE32_DEFS__H */

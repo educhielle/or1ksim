@@ -30,6 +30,11 @@
 /* Autoconf and/or portability configuration */
 #include "port.h"
 
+/** MoMA begin **/
+#include <gmp.h>
+#define REGISTER_LENGTH	32
+/** MoMA end **/
+
 /*! Index of the link register */
 #define LINK_REGNO     9
 

@@ -58,7 +58,12 @@
 /* Definition of special-purpose registers (SPRs). */
 
 #define MAX_GRPS (32)
+/** MoMA begin **/
+/** backup begin **
 #define MAX_SPRS_PER_GRP_BITS (11)
+/** backup end **/
+#define MAX_SPRS_PER_GRP_BITS (12)
+/** MoMA end **/
 #define MAX_SPRS_PER_GRP (1 << MAX_SPRS_PER_GRP_BITS)
 #define MAX_SPRS (0x10000)
 
@@ -75,6 +80,21 @@
 #define SPRGROUP_PIC	(9<< MAX_SPRS_PER_GRP_BITS)
 #define SPRGROUP_TT	(10<< MAX_SPRS_PER_GRP_BITS)
 #define SPRGROUP_FP	(11<< MAX_SPRS_PER_GRP_BITS)
+/** MoMA begin **/
+#define SPRGROUP_MOMA   (12<< MAX_SPRS_PER_GRP_BITS)
+
+/* MoMA registers */
+#define SPR_MOMA         (SPRGROUP_MOMA + 0)   // initial address
+#define SPR_MOMA_N       (SPRGROUP_MOMA + 0)   //[  1,128] is reserved to N
+#define SPR_MOMA_DATA_1  (SPRGROUP_MOMA + 128) //[129,256] is reserved to DATA_1
+#define SPR_MOMA_DATA_2  (SPRGROUP_MOMA + 256) //[257,384] is reserved to DATA_2
+#define SPR_MOMA_DATA_R  (SPRGROUP_MOMA + 384) //[385,512] is reserved to DATA_R
+#define SPR_MOMA_PARTLEN (SPRGROUP_MOMA + 512) // size of N address
+
+#define MOMA_LENGTH		512
+#define MOMA_MAX_REG_SIZE	4096
+#define MOMA_WORD_SIZE		32
+/** MoMA end **/
 
 /* System control and status group */
 #define SPR_VR		(SPRGROUP_SYS + 0)

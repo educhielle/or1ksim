@@ -864,6 +864,9 @@ loadcode (char *filename, oraddr_t startaddr, oraddr_t virtphy_transl)
   freemem      = startaddr;
   PRINTFQ ("loadcode: filename %s  startaddr=%" PRIxADDR "  virtphy_transl=%"
 	  PRIxADDR "\n", filename, startaddr, virtphy_transl);
+  /** MoMA begin **/
+  PRINTFQ ("MoMA!\n");
+  /** MoMA end **/
   identifyfile (filename);
 
 #if IMM_STATS
