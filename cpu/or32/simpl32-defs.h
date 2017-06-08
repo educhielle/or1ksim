@@ -112,6 +112,10 @@ extern void l_none PARAMS((struct iqueue_entry *));
 
 /** MoMA begin **/
 extern void l_mod PARAMS((struct iqueue_entry *));
+extern void moma_gcd2048 PARAMS((struct iqueue_entry *));
+extern void moma_mtmr2048 PARAMS((struct iqueue_entry *));
+extern void moma_mfmr048 PARAMS((struct iqueue_entry *));
+/*
 extern void moma_get PARAMS((struct iqueue_entry *));
 extern void moma_set PARAMS((struct iqueue_entry *));
 extern void moma_seto PARAMS((struct iqueue_entry *));
@@ -124,6 +128,7 @@ extern void moma_not1 PARAMS((struct iqueue_entry *));
 extern void moma_not2 PARAMS((struct iqueue_entry *));
 extern void moma_notr PARAMS((struct iqueue_entry *));
 extern void moma_hadd PARAMS((struct iqueue_entry *));
+*/
 /** MoMA end **/
 
 #endif	/* SIMPLE32_DEFS__H */

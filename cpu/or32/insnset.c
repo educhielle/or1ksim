@@ -1275,7 +1275,75 @@ INSTRUCTION (l_mod) {
   SET_PARAM0(temp1);
 }
 
-/* Instruction to get data from MoMA registers. l.mfspr could be used, but it may require supervisor mode */
+INSTRUCTION (moma_gcd2048) {
+	unsigned ins_reglen = 2048;
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	
+	int order = 1;
+	int endianess = 1;
+	int nails = 0;
+	int offsetD = MOMA_BASEADDR + ((unsigned)(mD) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
+	int offsetA = MOMA_BASEADDR + ((unsigned)(mA) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
+	int offsetB = MOMA_BASEADDR + ((unsigned)(mB) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
+
+	int reglen_bytes = ins_reglen / MOMA_STDWORDSIZE;
+
+	mpz_t baseWord;
+	mpz_init_set_str(baseWord, MOMA_STDHEXBASE, 16);
+	
+	for (int i  = 0; i < reglen_bytes; i++)
+	{
+		mpz_mul(mpz_mA, mpz_mA, baseWord);
+		mpz_add_ui(mpz_mA, mpz_mA, cpu_state.sprs[offsetA+i]);
+
+		mpz_mul(mpz_mB, mpz_mB, baseWord);
+		mpz_add_ui(mpz_mB, mpz_mB, cpu_state.sprs[offsetB+i]);	
+	}
+
+	mpz_gcd(mpz_mD, mpz_mA, mpz_mB);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	
+	for (int i = reglen_bytes - 1; i >= 0; i--)
+	{
+		cpu_state.sprs[offsetD+i] = (uorreg_t) mpz_get_ui(mpz_mD);
+		mpz_tdiv_q(mpz_mD, mpz_mD, baseWord);
+	}
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (moma_mtmr2048) {
+	unsigned ins_reglen = 2048;
+
+	orreg_t mD = PARAM0;
+	orreg_t rA = PARAM1;
+	orreg_t uimm = PARAM2;
+
+	int offsetD = MOMA_BASEADDR + ((unsigned)(mD) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN)) + (MOMA_NUMWORDS - 1 - (unsigned)(uimm));
+	cpu_state.sprs[offsetD] = rA;
+}
+
+INSTRUCTION (moma_mfmr2048) {
+	unsigned ins_reglen = 2048;
+
+	orreg_t rD;
+	orreg_t mA = PARAM1;
+	orreg_t uimm = PARAM2;
+
+	int offsetA = MOMA_BASEADDR + ((unsigned)(mA) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN)) + (MOMA_NUMWORDS - 1 - (unsigned)(uimm));
+	rD = cpu_state.sprs[offsetA];
+	SET_PARAM0(rD);
+}
+
+/* Instruction to get data from MoMA registers. l.mfspr could be used, but it may require supervisor mode *
 INSTRUCTION (moma_get) {
 	uorreg_t offset = PARAM1 | PARAM2;
 	uorreg_t value;
@@ -1289,7 +1357,7 @@ INSTRUCTION (moma_get) {
 }
 
 /* Instruction to set the MoMA registers. l.mtspr could be used, but it requires supervisor mode */
-/* moma.set rA,rB,K */
+/* moma.set rA,rB,K *
 INSTRUCTION (moma_set) {
 	uorreg_t offset = PARAM0;
 	uorreg_t value = PARAM1 | PARAM2;
@@ -1308,7 +1376,7 @@ INSTRUCTION (moma_set) {
 	}
 }
 
-/* moma.seto rA, rB, K to moma.seto K(rA),rB,L */
+/* moma.seto rA, rB, K to moma.seto K(rA),rB,L *
 INSTRUCTION (moma_seto) {
 	uorreg_t k = PARAM2 & 0xFFC0;
 	uorreg_t l = PARAM2 & 0x003F;
@@ -1330,7 +1398,7 @@ INSTRUCTION (moma_seto) {
 	}
 }
 
-/* moma.seti K,L */
+/* moma.seti K,L *
 INSTRUCTION (moma_seti) {
 	uorreg_t offset = PARAM0;
 	uorreg_t value = PARAM1;
@@ -1349,7 +1417,7 @@ INSTRUCTION (moma_seti) {
 	}
 }
 
-/* XOR operation between SPR_MOMA_DATA_1 and SPR_MOMA_DATA_2. Result is stored in SPR_MOMA_DATA_R */
+/* XOR operation between SPR_MOMA_DATA_1 and SPR_MOMA_DATA_2. Result is stored in SPR_MOMA_DATA_R *
 INSTRUCTION (moma_xor) {
 	uorreg_t partlen = (uorreg_t) cpu_state.sprs[SPR_MOMA_PARTLEN];
 	unsigned int parts = (unsigned int) MOMA_MAX_REG_SIZE / partlen;
@@ -1366,7 +1434,7 @@ INSTRUCTION (moma_xor) {
 	}
 }
 
-/* dataR[K to L] = data1[K to L] and data2[K to L] */
+/* dataR[K to L] = data1[K to L] and data2[K to L] *
 INSTRUCTION (moma_and) {
 	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
 	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
@@ -1383,7 +1451,7 @@ INSTRUCTION (moma_and) {
 	}
 }
 
-/* dataR[K to L] = data1[K to L] or data2[K to L] */
+/* dataR[K to L] = data1[K to L] or data2[K to L] *
 INSTRUCTION (moma_or) {
 	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
 	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
@@ -1421,7 +1489,7 @@ INSTRUCTION (moma_or) {
 		if (((n & 0x1) ^ (n & 0x2)) == 0) cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_R + offset];
 	}
 }*/
-
+/*
 INSTRUCTION (moma_not) {
 	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
 	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
@@ -1488,7 +1556,7 @@ INSTRUCTION (moma_notr) {
 	}
 }
 
-/* HADD operation using strings and gmp library */
+/* HADD operation using strings and gmp library *
 INSTRUCTION (moma_hadd) {
 	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
 	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
@@ -1546,6 +1614,6 @@ INSTRUCTION (moma_hadd) {
 	}
 	mpz_clear(n);
 	mpz_clear(baseWord);
-}
+}*/
 /** MoMA end **/
 

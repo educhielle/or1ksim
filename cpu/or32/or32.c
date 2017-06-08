@@ -47,6 +47,12 @@ CONST struct or32_letter or32_letters[] = {
   {'K', NUM_UNSIGNED},
   {'L', NUM_UNSIGNED},
   {'N', NUM_SIGNED},
+/** MoMA begin **/
+  {'P', NUM_UNSIGNED},
+  {'Q', NUM_UNSIGNED},
+  {'R', NUM_UNSIGNED},
+  {'S', NUM_UNSIGNED},
+/** MoMA end **/
   {'0', NUM_UNSIGNED},
   {'\0', 0}			/* dummy entry */
 };
@@ -318,17 +324,23 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
 ** Backup end **/
   {"l.modi", "rD,rA,I", "01 0xC  DDDDD AAAAA IIII IIII IIII IIII",
    EF (l_mod), 0, it_unknown},
-  {"l.mod", "rD,rA,rB", "01 0xD  DDDDD AAAAA BBBB B--- ---- 0x6",
+
+  {"moma.gcd2048", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --00 0011",
+   EF (moma_gcd2048), 0, it_unknown},
+
+  {"moma.mtmr2048", "P,rA,K", "01 0xD  PPPPP AAAAA KKKK KK-- --00 0110",
+   EF (moma_mtmr2048), 0, it_unknown},
+
+  {"moma.mfmr2048", "rD,Q,K", "01 0xD  DDDDD QQQQQ KKKK KK-- --00 0111",
+   EF (moma_mfmr2048), 0, it_unknown},
+
+  {"l.mod", "rD,rA,rB", "01 0xE  DDDDD AAAAA BBBB B--- ---- 0x6",
    EF (l_mod), 0, it_unknown},
 
-//  {"moma.get", "rD,rA", "01 0xD  DDDDD AAAAA ---- ---- ---- 0x0",
-  {"moma.get", "rD,rA,K", "01 0xD  DDDDD AAAAA KKKK KKKK KK-- 0x0",
+/*  {"moma.get", "rD,rA,K", "01 0xD  DDDDD AAAAA KKKK KKKK KK-- 0x0",
    EF (moma_get), 0, it_move},
-
-//  {"moma.set", "rA,rB", "01 0xE  ----- AAAAA BBBB B--- ---- 0x0",
   {"moma.set", "rA,rB,K", "01 0xE  KKKKK AAAAA BBBB BKKK KKKK KKKK",
    EF (moma_set), 0, it_move},
-//  {"moma.seto", "K(rA),rB,L", "11 0xE  KKKKK AAAAA BBBB BKKK KKLL LLLL",
   {"moma.seto", "rA,rB,K", "11 0xE  KKKKK AAAAA BBBB BKKK KKKK KKKK",
    EF (moma_seto), 0, it_move},
   {"moma.seti", "K,L", "11 0xF  KKKKK KKKKK LLLL LLLL LLLL LLLL",
@@ -350,7 +362,7 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
    EF (moma_notr), 0, it_unknown},
   {"moma.hadd", "K,L", "01 0xF  KKKKK KKLLL LLLL ---- ---- 0x4",
    EF (moma_hadd), 0, it_unknown},
-
+*/
 /** MoMA end **/
 
   {"l.ld", "rD,I(rA)", "10 0x0  DDDDD AAAAA IIII IIII IIII IIII", EFI,
