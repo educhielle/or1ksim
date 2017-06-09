@@ -325,6 +325,15 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
   {"l.modi", "rD,rA,I", "01 0xC  DDDDD AAAAA IIII IIII IIII IIII",
    EF (l_mod), 0, it_unknown},
 
+  {"moma.modmul2048", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS00 0000",
+   EF (moma_modmul2048), 0, it_unknown},
+
+  {"moma.modexp2048", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS00 0001",
+   EF (moma_modexp2048), 0, it_unknown},
+
+  {"moma.g2048", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS00 0010",
+   EF (moma_g2048), 0, it_unknown},
+
   {"moma.gcd2048", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --00 0011",
    EF (moma_gcd2048), 0, it_unknown},
 
