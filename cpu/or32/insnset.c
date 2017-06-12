@@ -1368,7 +1368,7 @@ INSTRUCTION (moma_modexp2048) {
 
 	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_mC);
 
-	//gmp_printf("%Zx ^ %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
+	//gmp_printf("%Zd ^ %Zd mod %Zd = %Zd\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
 
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
