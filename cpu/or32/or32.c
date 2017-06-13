@@ -337,6 +337,9 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
   {"moma.gcd2048", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --00 0011",
    EF (moma_gcd2048), 0, it_unknown},
 
+  {"moma.inv2048", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --00 0100",
+   EF (moma_inv2048), 0, it_unknown},
+
   {"moma.mtmr2048", "P,rA,K", "01 0xD  PPPPP AAAAA KKKK KK-- --00 0110",
    EF (moma_mtmr2048), 0, it_unknown},
 

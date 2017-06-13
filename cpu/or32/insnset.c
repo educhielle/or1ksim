@@ -1476,6 +1476,48 @@ INSTRUCTION (moma_gcd2048) {
 	mpz_clear(mpz_mD);
 }
 
+INSTRUCTION (moma_inv2048) {
+	unsigned ins_reglen = 2048;
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	
+	int offsetD = MOMA_BASEADDR + ((unsigned)(mD) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
+	int offsetA = MOMA_BASEADDR + ((unsigned)(mA) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
+	int offsetB = MOMA_BASEADDR + ((unsigned)(mB) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
+
+	int reglen_bytes = ins_reglen / MOMA_STDWORDSIZE;
+
+	mpz_t baseWord;
+	mpz_init_set_str(baseWord, MOMA_STDHEXBASE, 16);
+
+	for (int i  = 0; i < reglen_bytes; i++)
+	{
+		mpz_mul(mpz_mA, mpz_mA, baseWord);
+		mpz_add_ui(mpz_mA, mpz_mA, cpu_state.sprs[offsetA+i]);
+
+		mpz_mul(mpz_mB, mpz_mB, baseWord);
+		mpz_add_ui(mpz_mB, mpz_mB, cpu_state.sprs[offsetB+i]);	
+	}
+
+	mpz_invert(mpz_mD, mpz_mA, mpz_mB);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	
+	for (int i = reglen_bytes - 1; i >= 0; i--)
+	{
+		cpu_state.sprs[offsetD+i] = (uorreg_t) mpz_get_ui(mpz_mD);
+		mpz_tdiv_q(mpz_mD, mpz_mD, baseWord);
+	}
+	mpz_clear(mpz_mD);
+}
+
 INSTRUCTION (moma_mtmr2048) {
 	unsigned ins_reglen = 2048;
 
