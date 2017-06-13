@@ -1388,18 +1388,18 @@ INSTRUCTION (moma_g2048) {
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
-	orreg_t mC = PARAM3;
+	//orreg_t mC = PARAM3;
 	
-	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
+	mpz_t mpz_mD, mpz_mA, mpz_mB; //, mpz_mC;
 	mpz_init(mpz_mD);
 	mpz_init(mpz_mA);
 	mpz_init(mpz_mB);
-	mpz_init(mpz_mC);
+	//mpz_init(mpz_mC);
 	
 	int offsetD = MOMA_BASEADDR + ((unsigned)(mD) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
 	int offsetA = MOMA_BASEADDR + ((unsigned)(mA) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
 	int offsetB = MOMA_BASEADDR + ((unsigned)(mB) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
-	int offsetC = MOMA_BASEADDR + ((unsigned)(mC) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
+	//int offsetC = MOMA_BASEADDR + ((unsigned)(mC) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
 
 	int reglen_bytes = ins_reglen / MOMA_STDWORDSIZE;
 
@@ -1414,17 +1414,48 @@ INSTRUCTION (moma_g2048) {
 		mpz_mul(mpz_mB, mpz_mB, baseWord);
 		mpz_add_ui(mpz_mB, mpz_mB, cpu_state.sprs[offsetB+i]);
 
-		mpz_mul(mpz_mC, mpz_mC, baseWord);
-		mpz_add_ui(mpz_mC, mpz_mC, cpu_state.sprs[offsetC+i]);
+		//mpz_mul(mpz_mC, mpz_mC, baseWord);
+		//mpz_add_ui(mpz_mC, mpz_mC, cpu_state.sprs[offsetC+i]);
 	}
 
-	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_mC);
+	mpz_t fkf, n, n2, xp1, xp2, ox, encZero;
+	mpz_init(fkf);
+	mpz_init(n);
+	mpz_init(n2);
+	mpz_init(xp1);
+	mpz_init(xp2);
+	mpz_init(ox);
+	mpz_init(encZero);
 
-	//gmp_printf("%Zx ^ %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
+	mpz_set_str(fkf, "3480", 10);
+	mpz_set_str(n, "143", 10);
+	//mpz_mul_2exp(n2, n, 2); //n2(20449)
+	mpz_mul(n2, n, n);
+	mpz_set_str(xp1, "144", 10);
+	mpz_set_str(xp2, "18304", 10);
+	mpz_set_str(encZero, "12825", 10);
+
+	mpz_powm(ox, mpz_mA, fkf, n2);
+
+	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
+	{
+		mpz_set(mpz_mD, encZero);
+	}
+	else
+	{
+		mpz_set(mpz_mD, mpz_mB);
+	}
+	mpz_clear(fkf);
+	mpz_clear(n);
+	mpz_clear(n2);
+	mpz_clear(xp1);
+	mpz_clear(xp2);
+	mpz_clear(ox);
+	mpz_clear(encZero);
 
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
-	mpz_clear(mpz_mC);
+	//mpz_clear(mpz_mC);
 	
 	for (int i = reglen_bytes - 1; i >= 0; i--)
 	{
