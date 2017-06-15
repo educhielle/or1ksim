@@ -325,26 +325,26 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
   {"l.modi", "rD,rA,I", "01 0xC  DDDDD AAAAA IIII IIII IIII IIII",
    EF (l_mod), 0, it_unknown},
 
-  {"moma.modmul2048", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS00 0000",
-   EF (moma_modmul2048), 0, it_unknown},
+  {"le3.modmul", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS10 0000",
+   EF (le3_modmul2048), 0, it_unknown},
 
-  {"moma.modexp2048", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS00 0001",
-   EF (moma_modexp2048), 0, it_unknown},
+  {"le3.modexp", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS10 0001",
+   EF (le3_modexp2048), 0, it_unknown},
 
-  {"moma.g2048", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS00 0010",
-   EF (moma_g2048), 0, it_unknown},
+  {"le3.gfun", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS10 1111",
+   EF (le3_gfun2048), 0, it_unknown},
 
-  {"moma.gcd2048", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --00 0011",
-   EF (moma_gcd2048), 0, it_unknown},
+  {"le3.gcd", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --10 0100",
+   EF (le3_gcd2048), 0, it_unknown},
 
-  {"moma.inv2048", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --00 0100",
-   EF (moma_inv2048), 0, it_unknown},
+  {"le3.inv", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --10 0101",
+   EF (le3_inv2048), 0, it_unknown},
 
-  {"moma.mtmr2048", "P,rA,K", "01 0xD  PPPPP AAAAA KKKK KK-- --00 0110",
-   EF (moma_mtmr2048), 0, it_unknown},
+  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA -KKK KKK- --10 1000",
+   EF (le3_mter2048), 0, it_unknown},
 
-  {"moma.mfmr2048", "rD,Q,K", "01 0xD  DDDDD QQQQQ KKKK KK-- --00 0111",
-   EF (moma_mfmr2048), 0, it_unknown},
+  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ -KKK KKK- --10 1001",
+   EF (le3_mfer2048), 0, it_unknown},
 
   {"l.mod", "rD,rA,rB", "01 0xE  DDDDD AAAAA BBBB B--- ---- 0x6",
    EF (l_mod), 0, it_unknown},

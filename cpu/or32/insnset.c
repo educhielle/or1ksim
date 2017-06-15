@@ -1275,9 +1275,9 @@ INSTRUCTION (l_mod) {
   SET_PARAM0(temp1);
 }
 
-INSTRUCTION (moma_modmul2048) {
+INSTRUCTION (le3_modmul2048) {
 	unsigned ins_reglen = 2048;
-
+	//printf("modmul\n");
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
@@ -1330,9 +1330,9 @@ INSTRUCTION (moma_modmul2048) {
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (moma_modexp2048) {
+INSTRUCTION (le3_modexp2048) {
 	unsigned ins_reglen = 2048;
-
+	//printf("modexp\n");
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
@@ -1382,24 +1382,24 @@ INSTRUCTION (moma_modexp2048) {
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (moma_g2048) {
+INSTRUCTION (le3_gfun2048) {
 	unsigned ins_reglen = 2048;
-
+	//printf("gfun\n");
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
-	//orreg_t mC = PARAM3;
+	orreg_t mC = PARAM3;
 	
-	mpz_t mpz_mD, mpz_mA, mpz_mB; //, mpz_mC;
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
 	mpz_init(mpz_mD);
 	mpz_init(mpz_mA);
 	mpz_init(mpz_mB);
-	//mpz_init(mpz_mC);
+	mpz_init(mpz_mC);
 	
 	int offsetD = MOMA_BASEADDR + ((unsigned)(mD) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
 	int offsetA = MOMA_BASEADDR + ((unsigned)(mA) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
 	int offsetB = MOMA_BASEADDR + ((unsigned)(mB) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
-	//int offsetC = MOMA_BASEADDR + ((unsigned)(mC) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
+	int offsetC = MOMA_BASEADDR + ((unsigned)(mC) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN));
 
 	int reglen_bytes = ins_reglen / MOMA_STDWORDSIZE;
 
@@ -1414,8 +1414,8 @@ INSTRUCTION (moma_g2048) {
 		mpz_mul(mpz_mB, mpz_mB, baseWord);
 		mpz_add_ui(mpz_mB, mpz_mB, cpu_state.sprs[offsetB+i]);
 
-		//mpz_mul(mpz_mC, mpz_mC, baseWord);
-		//mpz_add_ui(mpz_mC, mpz_mC, cpu_state.sprs[offsetC+i]);
+		mpz_mul(mpz_mC, mpz_mC, baseWord);
+		mpz_add_ui(mpz_mC, mpz_mC, cpu_state.sprs[offsetC+i]);
 	}
 
 	mpz_t fkf, n, n2, xp1, xp2, ox, encZero;
@@ -1429,7 +1429,6 @@ INSTRUCTION (moma_g2048) {
 
 	mpz_set_str(fkf, "3480", 10);
 	mpz_set_str(n, "143", 10);
-	//mpz_mul_2exp(n2, n, 2); //n2(20449)
 	mpz_mul(n2, n, n);
 	mpz_set_str(xp1, "144", 10);
 	mpz_set_str(xp2, "18304", 10);
@@ -1465,9 +1464,9 @@ INSTRUCTION (moma_g2048) {
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (moma_gcd2048) {
+INSTRUCTION (le3_gcd2048) {
 	unsigned ins_reglen = 2048;
-
+	//printf("gcd\n");
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
@@ -1507,9 +1506,9 @@ INSTRUCTION (moma_gcd2048) {
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (moma_inv2048) {
+INSTRUCTION (le3_inv2048) {
 	unsigned ins_reglen = 2048;
-
+	//printf("inv\n");
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
@@ -1549,9 +1548,9 @@ INSTRUCTION (moma_inv2048) {
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (moma_mtmr2048) {
+INSTRUCTION (le3_mter2048) {
 	unsigned ins_reglen = 2048;
-
+	//printf("mter\n");
 	orreg_t mD = PARAM0;
 	orreg_t rA = PARAM1;
 	orreg_t uimm = PARAM2;
@@ -1562,9 +1561,9 @@ INSTRUCTION (moma_mtmr2048) {
 	cpu_state.sprs[offsetD] = rA;
 }
 
-INSTRUCTION (moma_mfmr2048) {
+INSTRUCTION (le3_mfer2048) {
 	unsigned ins_reglen = 2048;
-
+	//printf("mfer\n");
 	orreg_t rD;
 	orreg_t mA = PARAM1;
 	orreg_t uimm = PARAM2;
