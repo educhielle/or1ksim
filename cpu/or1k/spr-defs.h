@@ -59,10 +59,10 @@
 
 #define MAX_GRPS (32)
 /** MoMA begin **/
-/** backup begin **
+/** backup begin **/
 #define MAX_SPRS_PER_GRP_BITS (11)
 /** backup end **/
-#define MAX_SPRS_PER_GRP_BITS (12)
+//#define MAX_SPRS_PER_GRP_BITS (12)
 /** MoMA end **/
 #define MAX_SPRS_PER_GRP (1 << MAX_SPRS_PER_GRP_BITS)
 #define MAX_SPRS (0x10000)
