@@ -112,10 +112,38 @@ extern void l_none PARAMS((struct iqueue_entry *));
 
 /** MoMA begin **/
 extern void l_mod PARAMS((struct iqueue_entry *));
+
+extern void moma_modmul4096 PARAMS((struct iqueue_entry *));
+extern void moma_modexp4096 PARAMS((struct iqueue_entry *));
+extern void moma_gfun4096 PARAMS((struct iqueue_entry *));
+extern void moma_gcd4096 PARAMS((struct iqueue_entry *));
+extern void moma_inv4096 PARAMS((struct iqueue_entry *));
+extern void moma_mtmr4096 PARAMS((struct iqueue_entry *));
+extern void moma_mfmr4096 PARAMS((struct iqueue_entry *));
+
 extern void moma_modmul2048 PARAMS((struct iqueue_entry *));
+extern void moma_modexp2048 PARAMS((struct iqueue_entry *));
+extern void moma_gfun2048 PARAMS((struct iqueue_entry *));
 extern void moma_gcd2048 PARAMS((struct iqueue_entry *));
+extern void moma_inv2048 PARAMS((struct iqueue_entry *));
 extern void moma_mtmr2048 PARAMS((struct iqueue_entry *));
-extern void moma_mfmr048 PARAMS((struct iqueue_entry *));
+extern void moma_mfmr2048 PARAMS((struct iqueue_entry *));
+
+extern void moma_modmul1024 PARAMS((struct iqueue_entry *));
+extern void moma_modexp1024 PARAMS((struct iqueue_entry *));
+extern void moma_gfun1024 PARAMS((struct iqueue_entry *));
+extern void moma_gcd1024 PARAMS((struct iqueue_entry *));
+extern void moma_inv1024 PARAMS((struct iqueue_entry *));
+extern void moma_mtmr1024 PARAMS((struct iqueue_entry *));
+extern void moma_mfmr1024 PARAMS((struct iqueue_entry *));
+
+extern void moma_modmul512 PARAMS((struct iqueue_entry *));
+extern void moma_modexp512 PARAMS((struct iqueue_entry *));
+extern void moma_gfun512 PARAMS((struct iqueue_entry *));
+extern void moma_gcd512 PARAMS((struct iqueue_entry *));
+extern void moma_inv512 PARAMS((struct iqueue_entry *));
+extern void moma_mtmr512 PARAMS((struct iqueue_entry *));
+extern void moma_mfmr512 PARAMS((struct iqueue_entry *));
 /*
 extern void moma_get PARAMS((struct iqueue_entry *));
 extern void moma_set PARAMS((struct iqueue_entry *));

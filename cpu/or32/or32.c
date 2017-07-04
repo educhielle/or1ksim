@@ -324,30 +324,79 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
 ** Backup end **/
   {"l.modi", "rD,rA,I", "01 0xC  DDDDD AAAAA IIII IIII IIII IIII",
    EF (l_mod), 0, it_unknown},
-
-  {"le3.modmul", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS10 0000",
-   EF (le3_modmul2048), 0, it_unknown},
-
-  {"le3.modexp", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS10 0001",
-   EF (le3_modexp2048), 0, it_unknown},
-
-  {"le3.gfun", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS10 1111",
-   EF (le3_gfun2048), 0, it_unknown},
-
-  {"le3.gcd", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --10 0100",
-   EF (le3_gcd2048), 0, it_unknown},
-
-  {"le3.inv", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --10 0101",
-   EF (le3_inv2048), 0, it_unknown},
-
-  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA -KKK KKK- --10 1000",
-   EF (le3_mter2048), 0, it_unknown},
-
-  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ -KKK KKK- --10 1001",
-   EF (le3_mfer2048), 0, it_unknown},
-
   {"l.mod", "rD,rA,rB", "01 0xE  DDDDD AAAAA BBBB B--- ---- 0x6",
    EF (l_mod), 0, it_unknown},
+
+
+/* modmul */
+  {"le3.modmul", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS11 0000",
+   EF (le3_modmul4096), 0, it_unknown},
+  {"le3.modmul", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS10 0000",
+   EF (le3_modmul2048), 0, it_unknown},
+  {"le3.modmul", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS01 0000",
+   EF (le3_modmul1024), 0, it_unknown},
+  {"le3.modmul", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS00 0000",
+   EF (le3_modmul512), 0, it_unknown},
+
+/* modexp */
+  {"le3.modexp", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS11 0001",
+   EF (le3_modexp4096), 0, it_unknown},
+  {"le3.modexp", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS10 0001",
+   EF (le3_modexp2048), 0, it_unknown},
+  {"le3.modexp", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS01 0001",
+   EF (le3_modexp1024), 0, it_unknown},
+  {"le3.modexp", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS00 0001",
+   EF (le3_modexp512), 0, it_unknown},
+
+/* gfun */
+  {"le3.gfun", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS11 1111",
+   EF (le3_gfun4096), 0, it_unknown},
+  {"le3.gfun", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS10 1111",
+   EF (le3_gfun2048), 0, it_unknown},
+  {"le3.gfun", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS01 1111",
+   EF (le3_gfun1024), 0, it_unknown},
+  {"le3.gfun", "P,Q,R,S", "01 0xD  PPPPP QQQQQ RRRR RSSS SS00 1111",
+   EF (le3_gfun512), 0, it_unknown},
+
+/* gcd */
+  {"le3.gcd", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --11 0100",
+   EF (le3_gcd4096), 0, it_unknown},
+  {"le3.gcd", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --10 0100",
+   EF (le3_gcd2048), 0, it_unknown},
+  {"le3.gcd", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --01 0100",
+   EF (le3_gcd1024), 0, it_unknown},
+  {"le3.gcd", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --00 0100",
+   EF (le3_gcd512), 0, it_unknown},
+
+/* inv */
+  {"le3.inv", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --11 0101",
+   EF (le3_inv4096), 0, it_unknown},
+  {"le3.inv", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --10 0101",
+   EF (le3_inv2048), 0, it_unknown},
+  {"le3.inv", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --01 0101",
+   EF (le3_inv1024), 0, it_unknown},
+  {"le3.inv", "P,Q,R", "01 0xD  PPPPP QQQQQ RRRR R--- --00 0101",
+   EF (le3_inv512), 0, it_unknown},
+
+/* mter */
+  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA -KKK KKK- --11 1000",
+   EF (le3_mter4096), 0, it_unknown},
+  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA -KKK KKK- --10 1000",
+   EF (le3_mter2048), 0, it_unknown},
+  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA -KKK KKK- --01 1000",
+   EF (le3_mter1024), 0, it_unknown},
+  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA -KKK KKK- --00 1000",
+   EF (le3_mter512), 0, it_unknown},
+
+/* mfer */
+  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ -KKK KKK- --11 1001",
+   EF (le3_mfer4096), 0, it_unknown},
+  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ -KKK KKK- --10 1001",
+   EF (le3_mfer2048), 0, it_unknown},
+  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ -KKK KKK- --01 1001",
+   EF (le3_mfer1024), 0, it_unknown},
+  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ -KKK KKK- --00 1001",
+   EF (le3_mfer512), 0, it_unknown},
 
 /*  {"moma.get", "rD,rA,K", "01 0xD  DDDDD AAAAA KKKK KKKK KK-- 0x0",
    EF (moma_get), 0, it_move},

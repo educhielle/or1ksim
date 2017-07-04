@@ -100,6 +100,10 @@ static int  sbuf_tail              = 0;
 static int  sbuf_count             = 0;
 static int  sbuf_buf[MAX_SBUF_LEN] = { 0 };
 
+/** MoMA begin **/
+static int e3extensions_cycles = 0;
+/** MoMA end **/
+
 static int sbuf_prev_cycles = 0;
 
 /* Variables used throughout this file to share information */
@@ -563,6 +567,14 @@ sbuf_load ()
       sbuf_count--;
     }
 }	/* sbuf_load() */
+
+/** MoMA begin **/
+static void
+e3extensions_set_extra_cycles (int extra_cycles)
+{
+	e3extensions_cycles = extra_cycles;
+}
+/** MoMA end **/
 
 /*---------------------------------------------------------------------------*/
 /*!Outputs dissasembled instruction                                          */
@@ -1044,7 +1056,13 @@ exec_main ()
 	    }
 	}
 
+/** MoMA begin **/
+/** backup begin **
       runtime.sim.cycles        += runtime.sim.mem_cycles;
+** backup end **/
+	runtime.sim.cycles        += runtime.sim.mem_cycles + e3extensions_cycles;
+	e3extensions_cycles = 0;
+/** MoMA end **/
       scheduler.job_queue->time -= runtime.sim.cycles - time_start;
 
       if (scheduler.job_queue->time <= 0)
