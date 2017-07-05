@@ -80,32 +80,13 @@
 #define SPRGROUP_PIC	(9<< MAX_SPRS_PER_GRP_BITS)
 #define SPRGROUP_TT	(10<< MAX_SPRS_PER_GRP_BITS)
 #define SPRGROUP_FP	(11<< MAX_SPRS_PER_GRP_BITS)
+
 /** MoMA begin **/
-#define SPRGROUP_MOMA   (12<< MAX_SPRS_PER_GRP_BITS)
-
-#define MOMA_REGLEN		4096
-#define MOMA_STDWORDSIZE	32
-#define MOMA_STDHEXBASE		"100000000"
-#define MOMA_STDBYTESIZE	8
-#define MOMA_STDWORDSIZEINBYTES	MOMA_STDWORDSIZE / MOMA_STDBYTESIZE
-#define MOMA_NUMWORDS		MOMA_REGLEN / MOMA_STDWORDSIZE
-/* MoMA registers */
-#define MOMA_BASEADDR	SPRGROUP_MOMA
-#define MOMA_R0		(SPRGROUP_MOMA + MOMA_NUMWORDS * 0)
-#define MOMA_R1		(SPRGROUP_MOMA + MOMA_NUMWORDS * 1)
-#define MOMA_R2		(SPRGROUP_MOMA + MOMA_NUMWORDS * 2)
-#define MOMA_R3		(SPRGROUP_MOMA + MOMA_NUMWORDS * 3)
-/*
-#define SPR_MOMA         (SPRGROUP_MOMA + 0)   // initial address
-#define SPR_MOMA_N       (SPRGROUP_MOMA + 0)   //[  1,128] is reserved to N
-#define SPR_MOMA_DATA_1  (SPRGROUP_MOMA + 128) //[129,256] is reserved to DATA_1
-#define SPR_MOMA_DATA_2  (SPRGROUP_MOMA + 256) //[257,384] is reserved to DATA_2
-#define SPR_MOMA_DATA_R  (SPRGROUP_MOMA + 384) //[385,512] is reserved to DATA_R
-#define SPR_MOMA_PARTLEN (SPRGROUP_MOMA + 512) // size of N address
-
-#define MOMA_LENGTH		512
-#define MOMA_MAX_REG_SIZE	4096
-#define MOMA_WORD_SIZE		32
+#define E3_NUMREGS		4
+#define E3_REGLEN		4096
+#define E3_STDWORDSIZE		32
+#define E3_STDHEXBASE		"100000000"
+#define E3_NUMWORDS		E3_REGLEN / E3_STDWORDSIZE
 /** MoMA end **/
 
 /* System control and status group */

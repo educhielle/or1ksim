@@ -47,6 +47,9 @@
 struct cpu_state {
   uorreg_t             reg[MAX_GPRS];	/*!< General purpose registers */
   uorreg_t             sprs[MAX_SPRS];	/*!< Special purpose registers */
+/** MoMA begin **/
+  uorreg_t             e3reg[E3_NUMREGS][E3_NUMWORDS];
+/** MoMA end **/
   oraddr_t             insn_ea;		/*!< EA of instrs that have an EA */
   int                  delay_insn;	/*!< Is current instr in delay slot */
   int                  npc_not_valid;	/*!< NPC updated while stalled */

@@ -1275,12 +1275,12 @@ INSTRUCTION (l_mod) {
   SET_PARAM0(temp1);
 }
 
-INSTRUCTION (le3_modmul2048) {
-	unsigned ins_reglen = 2048;
+INSTRUCTION (le3_modmul4096) {
+	unsigned reglen_bit = 4096;
 
-	printf("modmul%d in\n", ins_reglen);
+	//printf("modmul%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(ins_reglen);
+	e3extensions_set_extra_cycles(reglen_bit);
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -1293,54 +1293,30 @@ INSTRUCTION (le3_modmul2048) {
 	mpz_init(mpz_mB);
 	mpz_init(mpz_mC);
 	
-	int reglen_words = ins_reglen / MOMA_STDWORDSIZE;
-	int offsetD = MOMA_BASEADDR + (((unsigned)(mD) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetA = MOMA_BASEADDR + (((unsigned)(mA) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetB = MOMA_BASEADDR + (((unsigned)(mB) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetC = MOMA_BASEADDR + (((unsigned)(mC) + 1) * MOMA_NUMWORDS - reglen_words);
-
-	mpz_t baseWord;
-	mpz_init_set_str(baseWord, MOMA_STDHEXBASE, 16);
-	
-	for (int i  = 0; i < reglen_words; i++)
-	{
-		mpz_mul(mpz_mA, mpz_mA, baseWord);
-		mpz_add_ui(mpz_mA, mpz_mA, cpu_state.sprs[offsetA+i]);
-
-		mpz_mul(mpz_mB, mpz_mB, baseWord);
-		mpz_add_ui(mpz_mB, mpz_mB, cpu_state.sprs[offsetB+i]);
-
-		mpz_mul(mpz_mC, mpz_mC, baseWord);
-		mpz_add_ui(mpz_mC, mpz_mC, cpu_state.sprs[offsetC+i]);
-	}
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
 
 	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
 	mpz_mod(mpz_mD, mpz_mD, mpz_mC);
 
-	//gmp_printf("> %Zd * %Zd mod %Zd = %Zd\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
-
 	//gmp_printf("%Zx * %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
-
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 	mpz_clear(mpz_mC);
-	
-	for (int i = reglen_words - 1; i >= 0; i--)
-	{
-		cpu_state.sprs[offsetD+i] = (uorreg_t) mpz_get_ui(mpz_mD);
-		mpz_tdiv_q(mpz_mD, mpz_mD, baseWord);
-	}
+
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 
-	printf("modmul%d out\n", ins_reglen);
+	//printf("modmul%d out\n", reglen_bit);
 }
 
-INSTRUCTION (le3_modexp2048) {
-	unsigned ins_reglen = 2048;
+INSTRUCTION (le3_modexp4096) {
+	unsigned reglen_bit = 4096;
 
-	printf("modexp%d in\n", ins_reglen);
+	//printf("modexp%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(ins_reglen*ins_reglen);
+	e3extensions_set_extra_cycles(reglen_bit*reglen_bit);
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -1353,51 +1329,30 @@ INSTRUCTION (le3_modexp2048) {
 	mpz_init(mpz_mB);
 	mpz_init(mpz_mC);
 
-	int reglen_words = ins_reglen / MOMA_STDWORDSIZE;
-	int offsetD = MOMA_BASEADDR + (((unsigned)(mD) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetA = MOMA_BASEADDR + (((unsigned)(mA) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetB = MOMA_BASEADDR + (((unsigned)(mB) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetC = MOMA_BASEADDR + (((unsigned)(mC) + 1) * MOMA_NUMWORDS - reglen_words);
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-	mpz_t baseWord;
-	mpz_init_set_str(baseWord, MOMA_STDHEXBASE, 16);
-	
-	for (int i  = 0; i < reglen_words; i++)
-	{
-		mpz_mul(mpz_mA, mpz_mA, baseWord);
-		mpz_add_ui(mpz_mA, mpz_mA, cpu_state.sprs[offsetA+i]);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
 
-		mpz_mul(mpz_mB, mpz_mB, baseWord);
-		mpz_add_ui(mpz_mB, mpz_mB, cpu_state.sprs[offsetB+i]);
-
-		mpz_mul(mpz_mC, mpz_mC, baseWord);
-		mpz_add_ui(mpz_mC, mpz_mC, cpu_state.sprs[offsetC+i]);
-	}
-
+	//gmp_printf("%Zx ^ %Zx mod %Zx\n", mpz_mA, mpz_mB, mpz_mC);
 	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_mC);
-
-	//gmp_printf("%Zd ^ %Zd mod %Zd = %Zd\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
-
+	//gmp_printf("%Zx ^ %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 	mpz_clear(mpz_mC);
 	
-	for (int i = reglen_words - 1; i >= 0; i--)
-	{
-		cpu_state.sprs[offsetD+i] = (uorreg_t) mpz_get_ui(mpz_mD);
-		mpz_tdiv_q(mpz_mD, mpz_mD, baseWord);
-	}
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 
-	printf("modexp%d out\n", ins_reglen);
+	//printf("modexp%d out\n", reglen_bit);
 }
 
-INSTRUCTION (le3_gfun2048) {
-	unsigned ins_reglen = 2048;
+INSTRUCTION (le3_gfun4096) {
+	unsigned reglen_bit = 4096;
 
-	printf("gfun%d in\n", ins_reglen);
+	//printf("gfun%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(ins_reglen*ins_reglen);
+	e3extensions_set_extra_cycles(reglen_bit*reglen_bit);
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -1410,26 +1365,9 @@ INSTRUCTION (le3_gfun2048) {
 	mpz_init(mpz_mB);
 	mpz_init(mpz_mC);
 	
-	int reglen_words = ins_reglen / MOMA_STDWORDSIZE;
-	int offsetD = MOMA_BASEADDR + (((unsigned)(mD) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetA = MOMA_BASEADDR + (((unsigned)(mA) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetB = MOMA_BASEADDR + (((unsigned)(mB) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetC = MOMA_BASEADDR + (((unsigned)(mC) + 1) * MOMA_NUMWORDS - reglen_words);
-
-	mpz_t baseWord;
-	mpz_init_set_str(baseWord, MOMA_STDHEXBASE, 16);
-	
-	for (int i  = 0; i < reglen_words; i++)
-	{
-		mpz_mul(mpz_mA, mpz_mA, baseWord);
-		mpz_add_ui(mpz_mA, mpz_mA, cpu_state.sprs[offsetA+i]);
-
-		mpz_mul(mpz_mB, mpz_mB, baseWord);
-		mpz_add_ui(mpz_mB, mpz_mB, cpu_state.sprs[offsetB+i]);
-
-		mpz_mul(mpz_mC, mpz_mC, baseWord);
-		mpz_add_ui(mpz_mC, mpz_mC, cpu_state.sprs[offsetC+i]);
-	}
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
 
 	mpz_t fkf, n, n2, xp1, xp2, ox, encZero;
 	mpz_init(fkf);
@@ -1471,24 +1409,20 @@ INSTRUCTION (le3_gfun2048) {
 
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
-	//mpz_clear(mpz_mC);
+	mpz_clear(mpz_mC);
 	
-	for (int i = reglen_words - 1; i >= 0; i--)
-	{
-		cpu_state.sprs[offsetD+i] = (uorreg_t) mpz_get_ui(mpz_mD);
-		mpz_tdiv_q(mpz_mD, mpz_mD, baseWord);
-	}
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 
-	printf("gfun%d out\n", ins_reglen);
+	//printf("gfun%d out\n", reglen_bit);
 }
 
-INSTRUCTION (le3_gcd2048) {
-	unsigned ins_reglen = 2048;
+INSTRUCTION (le3_gcd4096) {
+	unsigned reglen_bit = 4096;
 
-	printf("gcd%d in\n", ins_reglen);
+	//printf("gcd%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(2*ins_reglen); // worst case
+	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -1499,44 +1433,25 @@ INSTRUCTION (le3_gcd2048) {
 	mpz_init(mpz_mA);
 	mpz_init(mpz_mB);
 	
-	int reglen_words = ins_reglen / MOMA_STDWORDSIZE;
-	int offsetD = MOMA_BASEADDR + (((unsigned)(mD) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetA = MOMA_BASEADDR + (((unsigned)(mA) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetB = MOMA_BASEADDR + (((unsigned)(mB) + 1) * MOMA_NUMWORDS - reglen_words);
-	//int offsetC = MOMA_BASEADDR + (((unsigned)(mC) + 1) * MOMA_NUMWORDS - reglen_words);
-
-	mpz_t baseWord;
-	mpz_init_set_str(baseWord, MOMA_STDHEXBASE, 16);
-
-	for (int i  = 0; i < reglen_words; i++)
-	{
-		mpz_mul(mpz_mA, mpz_mA, baseWord);
-		mpz_add_ui(mpz_mA, mpz_mA, cpu_state.sprs[offsetA+i]);
-
-		mpz_mul(mpz_mB, mpz_mB, baseWord);
-		mpz_add_ui(mpz_mB, mpz_mB, cpu_state.sprs[offsetB+i]);	
-	}
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_gcd(mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 	
-	for (int i = reglen_words - 1; i >= 0; i--)
-	{
-		cpu_state.sprs[offsetD+i] = (uorreg_t) mpz_get_ui(mpz_mD);
-		mpz_tdiv_q(mpz_mD, mpz_mD, baseWord);
-	}
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 
-	printf("gcd%d out\n", ins_reglen);
+	//printf("gcd%d out\n", reglen_bit);
 }
 
-INSTRUCTION (le3_inv2048) {
-	unsigned ins_reglen = 2048;
+INSTRUCTION (le3_inv4096) {
+	unsigned reglen_bit = 4096;
 
-	printf("inv%d in\n", ins_reglen);
+	//printf("inv%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(2*ins_reglen); // worst case
+	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -1547,350 +1462,749 @@ INSTRUCTION (le3_inv2048) {
 	mpz_init(mpz_mA);
 	mpz_init(mpz_mB);
 	
-	int reglen_words = ins_reglen / MOMA_STDWORDSIZE;
-	int offsetD = MOMA_BASEADDR + (((unsigned)(mD) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetA = MOMA_BASEADDR + (((unsigned)(mA) + 1) * MOMA_NUMWORDS - reglen_words);
-	int offsetB = MOMA_BASEADDR + (((unsigned)(mB) + 1) * MOMA_NUMWORDS - reglen_words);
-	//int offsetC = MOMA_BASEADDR + (((unsigned)(mC) + 1) * MOMA_NUMWORDS - reglen_words);
-
-	mpz_t baseWord;
-	mpz_init_set_str(baseWord, MOMA_STDHEXBASE, 16);
-
-	for (int i  = 0; i < reglen_words; i++)
-	{
-		mpz_mul(mpz_mA, mpz_mA, baseWord);
-		mpz_add_ui(mpz_mA, mpz_mA, cpu_state.sprs[offsetA+i]);
-
-		mpz_mul(mpz_mB, mpz_mB, baseWord);
-		mpz_add_ui(mpz_mB, mpz_mB, cpu_state.sprs[offsetB+i]);	
-	}
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_invert(mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 	
-	for (int i = reglen_words - 1; i >= 0; i--)
-	{
-		cpu_state.sprs[offsetD+i] = (uorreg_t) mpz_get_ui(mpz_mD);
-		mpz_tdiv_q(mpz_mD, mpz_mD, baseWord);
-	}
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 
-	printf("inv%d in\n", ins_reglen);
+	//printf("inv%d in\n", reglen_bit);
 }
 
-INSTRUCTION (le3_mter2048) {
-	unsigned ins_reglen = 2048;
+INSTRUCTION (le3_mter4096) {
+	unsigned reglen_bit = 4096;
 
-	printf("mter%d in\n", ins_reglen);
+	//printf("mter%d in\n", reglen_bit);
 
 	orreg_t mD = PARAM0;
 	orreg_t rA = PARAM1;
 	orreg_t uimm = PARAM2;
 
-	//printf("-> %u %u %u\n", mD, rA, uimm);
+	int offset = E3_NUMWORDS - uimm - 1;
+	cpu_state.e3reg[mD][offset] = rA;
 
-	int reglen_words = ins_reglen / MOMA_STDWORDSIZE;
-	int offsetD = MOMA_BASEADDR + (((unsigned)(mD) + 1) * MOMA_NUMWORDS - reglen_words) + (unsigned)(uimm);
-
-	//int offsetD = MOMA_BASEADDR + ((unsigned)(mD) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN)) + (MOMA_NUMWORDS * MOMA_REGLEN / ins_reglen - 1 - (unsigned)(uimm));
-	cpu_state.sprs[offsetD] = rA;
-
-	printf("mter%d out\n", ins_reglen);
+	//printf("cpu_state %u\tmD %u\t = rA %u\t[%u] :: %u\n", cpu_state.e3reg[mD][127], mD, rA, uimm, offset);
+	//printf("mter%d out\n", reglen_bit);
 }
 
-INSTRUCTION (le3_mfer2048) {
-	unsigned ins_reglen = 2048;
+INSTRUCTION (le3_mfer4096) {
+	unsigned reglen_bit = 4096;
 
-	printf("mfer%d in\n", ins_reglen);
+	//printf("mfer%d in\n", reglen_bit);
 
 	orreg_t rD;
 	orreg_t mA = PARAM1;
 	orreg_t uimm = PARAM2;
 
-	int reglen_words = ins_reglen / MOMA_STDWORDSIZE;
-	int offsetA = MOMA_BASEADDR + (((unsigned)(mA) + 1) * MOMA_NUMWORDS - reglen_words) + (unsigned)(uimm);
+	int offset = E3_NUMWORDS - uimm - 1;
+	rD = cpu_state.e3reg[mA][offset];
 
-	//int offsetA = MOMA_BASEADDR + ((unsigned)(mA) * (MOMA_NUMWORDS * ins_reglen / MOMA_REGLEN)) + (MOMA_NUMWORDS * MOMA_REGLEN / ins_reglen - 1 - (unsigned)(uimm));
-	rD = cpu_state.sprs[offsetA];
-	//printf("<- %u %u %u\n", rD, mA, uimm);
-
+//	printf("rD %u\t = mA %u\t[%u] :: %u\n", rD, mA, uimm, offset);
 	SET_PARAM0(rD);
 
-	printf("mfer%d out\n", ins_reglen);
+	//printf("mfer%d out\n", reglen_bit);
 }
 
-/* Instruction to get data from MoMA registers. l.mfspr could be used, but it may require supervisor mode *
-INSTRUCTION (moma_get) {
-	uorreg_t offset = PARAM1 | PARAM2;
-	uorreg_t value;
+INSTRUCTION (le3_modmul2048) {
+	unsigned reglen_bit = 2048;
+
+	//printf("modmul%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	orreg_t mC = PARAM3;
 	
-	if ((offset >= 0) && (offset < MOMA_LENGTH))
-		value = cpu_state.sprs[SPR_MOMA + offset];
-	else
-		value = cpu_state.sprs[SPR_MOMA_PARTLEN];
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init(mpz_mC);
 	
-	SET_PARAM0(value);
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
+
+	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
+	mpz_mod(mpz_mD, mpz_mD, mpz_mC);
+
+	//gmp_printf("%Zx * %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mC);
+
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("modmul%d out\n", reglen_bit);
 }
 
-/* Instruction to set the MoMA registers. l.mtspr could be used, but it requires supervisor mode */
-/* moma.set rA,rB,K *
-INSTRUCTION (moma_set) {
-	uorreg_t offset = PARAM0;
-	uorreg_t value = PARAM1 | PARAM2;
+INSTRUCTION (le3_modexp2048) {
+	unsigned reglen_bit = 2048;
+
+	//printf("modexp%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(reglen_bit*reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	orreg_t mC = PARAM3;
 	
-	int i;
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init(mpz_mC);
+
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
+
+	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_mC);
+	//gmp_printf("%Zx ^ %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mC);
 	
-	if ((offset >= 0) && (offset < MOMA_LENGTH))
-		cpu_state.sprs[SPR_MOMA + offset] = value;
-	else if (offset == MOMA_LENGTH + 1) {
-		if ((value < MOMA_WORD_SIZE) || (value > MOMA_MAX_REG_SIZE)) value = MOMA_MAX_REG_SIZE;
-		else {
-			for (i = 0; value != 0; i++, value >> 1);
-			value = 1 << (i-1);
-		}
-		cpu_state.sprs[SPR_MOMA_PARTLEN] = value;
-	}
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("modexp%d out\n", reglen_bit);
 }
 
-/* moma.seto rA, rB, K to moma.seto K(rA),rB,L *
-INSTRUCTION (moma_seto) {
-	uorreg_t k = PARAM2 & 0xFFC0;
-	uorreg_t l = PARAM2 & 0x003F;
+INSTRUCTION (le3_gfun2048) {
+	unsigned reglen_bit = 2048;
 
-	uorreg_t offset = PARAM0 + k;
-	uorreg_t value = PARAM1 | l;
+	//printf("gfun%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(reglen_bit*reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	orreg_t mC = PARAM3;
 	
-	int i;
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init(mpz_mC);
 	
-	if ((offset >= 0) && (offset < MOMA_LENGTH))
-		cpu_state.sprs[SPR_MOMA + offset] = value;
-	else if (offset == MOMA_LENGTH + 1) {
-		if ((value < MOMA_WORD_SIZE) || (value > MOMA_MAX_REG_SIZE)) value = MOMA_MAX_REG_SIZE;
-		else {
-			for (i = 0; value != 0; i++, value >> 1);
-			value = 1 << (i-1);
-		}
-		cpu_state.sprs[SPR_MOMA_PARTLEN] = value;
-	}
-}
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
 
-/* moma.seti K,L *
-INSTRUCTION (moma_seti) {
-	uorreg_t offset = PARAM0;
-	uorreg_t value = PARAM1;
-		
-	int i;
-	
-	if ((offset >= 0) && (offset < MOMA_LENGTH))
-		cpu_state.sprs[SPR_MOMA + offset] = value;
-	else if (offset == MOMA_LENGTH + 1) {
-		if ((value < MOMA_WORD_SIZE) || (value > MOMA_MAX_REG_SIZE)) value = MOMA_MAX_REG_SIZE;
-		else {
-			for (i = 0; value != 0; i++, value >> 1);
-			value = 1 << (i-1);
-		}
-		cpu_state.sprs[SPR_MOMA_PARTLEN] = value;
-	}
-}
-
-/* XOR operation between SPR_MOMA_DATA_1 and SPR_MOMA_DATA_2. Result is stored in SPR_MOMA_DATA_R *
-INSTRUCTION (moma_xor) {
-	uorreg_t partlen = (uorreg_t) cpu_state.sprs[SPR_MOMA_PARTLEN];
-	unsigned int parts = (unsigned int) MOMA_MAX_REG_SIZE / partlen;
-	unsigned int ratio = (unsigned int) partlen / MOMA_WORD_SIZE;
-	unsigned int offset;
-
-	uorreg_t k = (uorreg_t) PARAM0;
-	uorreg_t l = (uorreg_t) PARAM1;
-	if (l > parts) l = parts;
-
-	for (; k <= l; k++) {
-		offset = ratio * k;
-		cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_1 + offset] ^ cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
-	}
-}
-
-/* dataR[K to L] = data1[K to L] and data2[K to L] *
-INSTRUCTION (moma_and) {
-	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
-	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
-	unsigned int ratio = partlen / MOMA_WORD_SIZE;
-	unsigned int offset;
-
-	uorreg_t k = PARAM0;
-	uorreg_t l = PARAM1;
-	if (l > parts) l = parts;
-
-	for (; k <= l; k++) {
-		offset = ratio * k;
-		cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_1 + offset] & cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
-	}
-}
-
-/* dataR[K to L] = data1[K to L] or data2[K to L] *
-INSTRUCTION (moma_or) {
-	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
-	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
-	unsigned int ratio = partlen / MOMA_WORD_SIZE;
-	unsigned int offset;
-
-	uorreg_t k = PARAM0;
-	uorreg_t l = PARAM1;
-	if (l > parts) l = parts;
-
-	for (; k <= l; k++) {
-		offset = ratio * k;
-		cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_1 + offset] | cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
-	}
-}
-
-/* if (N == 0) or (N ==  1) data1[K to L] = not data1[K to L] // in HW: if (N[1] == 0) */
-/* if (N == 0) or (N ==  2) data2[K to L] = not data2[K to L] // in HW: if (N[0] == 0) */
-/* if (N == 0) or (N == -1) dataR[K to L] = not dataR[K to L] // in HW: if (N[0] xor N[1] == 0) */
-/*INSTRUCTION (moma_not) {
-	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
-	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
-	unsigned int ratio = partlen / MOMA_WORD_SIZE;
-	unsigned int offset;
-
-	uorreg_t k = PARAM0;
-	uorreg_t l = PARAM1;
-	orreg_t n = PARAM2;
-	if (l > parts) l = parts;
-
-	for (; k <= l; k++) {
-		offset = ratio * k;
-		if ((n & 0x1) == 0) cpu_state.sprs[SPR_MOMA_DATA_1 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_1 + offset];
-		if ((n & 0x2) == 0) cpu_state.sprs[SPR_MOMA_DATA_2 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
-		if (((n & 0x1) ^ (n & 0x2)) == 0) cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_R + offset];
-	}
-}*/
-/*
-INSTRUCTION (moma_not) {
-	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
-	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
-	unsigned int ratio = partlen / MOMA_WORD_SIZE;
-	unsigned int offset;
-
-	uorreg_t k = PARAM0;
-	uorreg_t l = PARAM1;
-	if (l > parts) l = parts;
-
-	for (; k <= l; k++) {
-		offset = ratio * k;
-		cpu_state.sprs[SPR_MOMA_DATA_1 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_1 + offset];
-		cpu_state.sprs[SPR_MOMA_DATA_2 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
-		cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_R + offset];
-	}
-}
-
-INSTRUCTION (moma_not1) {
-	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
-	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
-	unsigned int ratio = partlen / MOMA_WORD_SIZE;
-	unsigned int offset;
-
-	uorreg_t k = PARAM0;
-	uorreg_t l = PARAM1;
-	if (l > parts) l = parts;
-
-	for (; k <= l; k++) {
-		offset = ratio * k;
-		cpu_state.sprs[SPR_MOMA_DATA_1 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_1 + offset];
-	}
-}
-
-INSTRUCTION (moma_not2) {
-	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
-	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
-	unsigned int ratio = partlen / MOMA_WORD_SIZE;
-	unsigned int offset;
-
-	uorreg_t k = PARAM0;
-	uorreg_t l = PARAM1;
-	if (l > parts) l = parts;
-
-	for (; k <= l; k++) {
-		offset = ratio * k;
-		cpu_state.sprs[SPR_MOMA_DATA_2 + offset] = !cpu_state.sprs[SPR_MOMA_DATA_2 + offset];
-	}
-}
-
-INSTRUCTION (moma_notr) {
-	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
-	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
-	unsigned int ratio = partlen / MOMA_WORD_SIZE;
-	unsigned int offset;
-
-	uorreg_t k = PARAM0;
-	uorreg_t l = PARAM1;
-	if (l > parts) l = parts;
-
-	for (; k <= l; k++) {
-		offset = ratio * k;
-		cpu_state.sprs[SPR_MOMA_DATA_R + offset] = cpu_state.sprs[SPR_MOMA_DATA_R + offset];
-	}
-}
-
-/* HADD operation using strings and gmp library *
-INSTRUCTION (moma_hadd) {
-	uorreg_t partlen = cpu_state.sprs[SPR_MOMA_PARTLEN];
-	unsigned int parts = MOMA_MAX_REG_SIZE / partlen;
-	unsigned int ratio = partlen / MOMA_WORD_SIZE;
-
-	uorreg_t k = PARAM0;
-	uorreg_t l = PARAM1;
-	if (l > parts) l = parts;
-
-	unsigned int offset, i;
-
-	// assign static variables to big numbers
-	mpz_t n, data1, data2, data1x2, dataR, baseWord;
+	mpz_t fkf, n, n2, xp1, xp2, ox, encZero;
+	mpz_init(fkf);
 	mpz_init(n);
-	mpz_init_set_str(baseWord, "100000000", 16);
-	for (i = 0; i < ratio; i++) {
-		mpz_mul(n, n, baseWord);
-		mpz_add_ui(n, n, cpu_state.sprs[SPR_MOMA_N + i]);
-	}
+	mpz_init(n2);
+	mpz_init(xp1);
+	mpz_init(xp2);
+	mpz_init(ox);
+	mpz_init(encZero);
 
-	
-	// for each part in the range
-	for (; k <= l; k++) {
-		offset = ratio * k;
+	mpz_set_str(fkf, "3480", 10);
+	//mpz_set_str(n, "143", 10);
+	//mpz_mul(n2, n, n);
+	mpz_set(n2, mpz_mC);
+	mpz_root(n, n2, 2);
+	mpz_set_str(xp1, "144", 10);
+	mpz_set_str(xp2, "18304", 10);
+	mpz_set_str(encZero, "12825", 10);
 
-		// initializing big numbers
-		mpz_init(data1);
-		mpz_init(data2);
-			
-		// copy values of N, data_1 and data_2 to mpz_t variables
-		for (i = 0; i < ratio; i++) {
-			mpz_mul(data1, data1, baseWord);
-			mpz_mul(data2, data2, baseWord);
-			mpz_add_ui(data1, data1, cpu_state.sprs[SPR_MOMA_DATA_1 + offset + i]);
-			mpz_add_ui(data2, data2, cpu_state.sprs[SPR_MOMA_DATA_2 + offset + i]);
-		}
-		
-		// multiply
-		mpz_init(data1x2);
-		mpz_mul(data1x2, data1, data2);
-		mpz_clear(data1);
-		mpz_clear(data2);
-		
-		// modulo N
-		mpz_init(dataR);
-		mpz_mod(dataR, data1x2, n);
-		mpz_clear(data1x2);
-		
-		// store result in data_r registers
-		for (i = ratio-1; i >= 0; i--) {
-			cpu_state.sprs[SPR_MOMA_DATA_R + offset + i] = (uorreg_t) mpz_get_ui(dataR);
-			mpz_tdiv_q(dataR, dataR, baseWord);
-		}
-		mpz_clear(dataR);
+	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
+
+	mpz_powm(ox, mpz_mA, fkf, n2);
+
+	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
+	{
+		mpz_set(mpz_mD, encZero);
 	}
+	else
+	{
+		mpz_set(mpz_mD, mpz_mB);
+	}
+	mpz_clear(fkf);
 	mpz_clear(n);
-	mpz_clear(baseWord);
-}*/
+	mpz_clear(n2);
+	mpz_clear(xp1);
+	mpz_clear(xp2);
+	mpz_clear(ox);
+	mpz_clear(encZero);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mC);
+	
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("gfun%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_gcd2048) {
+	unsigned reglen_bit = 2048;
+
+	//printf("gcd%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+
+	mpz_gcd(mpz_mD, mpz_mA, mpz_mB);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("gcd%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_inv2048) {
+	unsigned reglen_bit = 2048;
+
+	//printf("inv%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+
+	mpz_invert(mpz_mD, mpz_mA, mpz_mB);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("inv%d in\n", reglen_bit);
+}
+
+INSTRUCTION (le3_mter2048) {
+	unsigned reglen_bit = 2048;
+
+	//printf("mter%d in\n", reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t rA = PARAM1;
+	orreg_t uimm = PARAM2;
+
+	int offset = E3_NUMWORDS - uimm - 1;
+	cpu_state.e3reg[mD][offset] = rA;
+
+	//printf("mD %u\t = rA %u\t[%u] :: %u\n", mD, rA, uimm, offset);
+	//printf("mter%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_mfer2048) {
+	unsigned reglen_bit = 2048;
+
+	//printf("mfer%d in\n", reglen_bit);
+
+	orreg_t rD;
+	orreg_t mA = PARAM1;
+	orreg_t uimm = PARAM2;
+
+	int offset = E3_NUMWORDS - uimm - 1;
+	rD = cpu_state.e3reg[mA][offset];
+
+//	printf("rD %u\t = mA %u\t[%u] :: %u\n", rD, mA, uimm, offset);
+	SET_PARAM0(rD);
+
+	//printf("mfer%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_modmul1024) {
+	unsigned reglen_bit = 1024;
+
+	//printf("modmul%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	orreg_t mC = PARAM3;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init(mpz_mC);
+	
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
+
+	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
+	mpz_mod(mpz_mD, mpz_mD, mpz_mC);
+
+	//gmp_printf("%Zx * %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mC);
+
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("modmul%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_modexp1024) {
+	unsigned reglen_bit = 1024;
+
+	//printf("modexp%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(reglen_bit*reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	orreg_t mC = PARAM3;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init(mpz_mC);
+
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
+
+	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_mC);
+	//gmp_printf("%Zx ^ %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mC);
+	
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("modexp%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_gfun1024) {
+	unsigned reglen_bit = 1024;
+
+	//printf("gfun%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(reglen_bit*reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	orreg_t mC = PARAM3;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init(mpz_mC);
+	
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
+
+	mpz_t fkf, n, n2, xp1, xp2, ox, encZero;
+	mpz_init(fkf);
+	mpz_init(n);
+	mpz_init(n2);
+	mpz_init(xp1);
+	mpz_init(xp2);
+	mpz_init(ox);
+	mpz_init(encZero);
+
+	mpz_set_str(fkf, "3480", 10);
+	//mpz_set_str(n, "143", 10);
+	//mpz_mul(n2, n, n);
+	mpz_set(n2, mpz_mC);
+	mpz_root(n, n2, 2);
+	mpz_set_str(xp1, "144", 10);
+	mpz_set_str(xp2, "18304", 10);
+	mpz_set_str(encZero, "12825", 10);
+
+	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
+
+	mpz_powm(ox, mpz_mA, fkf, n2);
+
+	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
+	{
+		mpz_set(mpz_mD, encZero);
+	}
+	else
+	{
+		mpz_set(mpz_mD, mpz_mB);
+	}
+	mpz_clear(fkf);
+	mpz_clear(n);
+	mpz_clear(n2);
+	mpz_clear(xp1);
+	mpz_clear(xp2);
+	mpz_clear(ox);
+	mpz_clear(encZero);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mC);
+	
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("gfun%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_gcd1024) {
+	unsigned reglen_bit = 1024;
+
+	//printf("gcd%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+
+	mpz_gcd(mpz_mD, mpz_mA, mpz_mB);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("gcd%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_inv1024) {
+	unsigned reglen_bit = 1024;
+
+	//printf("inv%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+
+	mpz_invert(mpz_mD, mpz_mA, mpz_mB);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("inv%d in\n", reglen_bit);
+}
+
+INSTRUCTION (le3_mter1024) {
+	unsigned reglen_bit = 1024;
+
+	//printf("mter%d in\n", reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t rA = PARAM1;
+	orreg_t uimm = PARAM2;
+
+	int offset = E3_NUMWORDS - uimm - 1;
+	cpu_state.e3reg[mD][offset] = rA;
+
+	//printf("mD %u\t = rA %u\t[%u] :: %u\n", mD, rA, uimm, offset);
+	//printf("mter%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_mfer1024) {
+	unsigned reglen_bit = 1024;
+
+	//printf("mfer%d in\n", reglen_bit);
+
+	orreg_t rD;
+	orreg_t mA = PARAM1;
+	orreg_t uimm = PARAM2;
+
+	int offset = E3_NUMWORDS - uimm - 1;
+	rD = cpu_state.e3reg[mA][offset];
+
+//	printf("rD %u\t = mA %u\t[%u] :: %u\n", rD, mA, uimm, offset);
+	SET_PARAM0(rD);
+
+	//printf("mfer%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_modmul512) {
+	unsigned reglen_bit = 512;
+
+	//printf("modmul%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	orreg_t mC = PARAM3;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init(mpz_mC);
+	
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
+
+	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
+	mpz_mod(mpz_mD, mpz_mD, mpz_mC);
+
+	//gmp_printf("%Zx * %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mC);
+
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("modmul%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_modexp512) {
+	unsigned reglen_bit = 512;
+
+	//printf("modexp%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(reglen_bit*reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	orreg_t mC = PARAM3;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init(mpz_mC);
+
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
+
+	//gmp_printf("%Zx ^ %Zx mod %Zx\n", mpz_mA, mpz_mB, mpz_mC);
+	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_mC);
+	//gmp_printf("%Zx ^ %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mC);
+	
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("modexp%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_gfun512) {
+	unsigned reglen_bit = 512;
+
+	//printf("gfun%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(reglen_bit*reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	orreg_t mC = PARAM3;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init(mpz_mC);
+	
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
+
+	mpz_t fkf, n, n2, xp1, xp2, ox, encZero;
+	mpz_init(fkf);
+	mpz_init(n);
+	mpz_init(n2);
+	mpz_init(xp1);
+	mpz_init(xp2);
+	mpz_init(ox);
+	mpz_init(encZero);
+
+	mpz_set_str(fkf, "3480", 10);
+	//mpz_set_str(n, "143", 10);
+	//mpz_mul(n2, n, n);
+	mpz_set(n2, mpz_mC);
+	mpz_root(n, n2, 2);
+	mpz_set_str(xp1, "144", 10);
+	mpz_set_str(xp2, "18304", 10);
+	mpz_set_str(encZero, "12825", 10);
+
+	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
+
+	mpz_powm(ox, mpz_mA, fkf, n2);
+
+	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
+	{
+		mpz_set(mpz_mD, encZero);
+	}
+	else
+	{
+		mpz_set(mpz_mD, mpz_mB);
+	}
+	mpz_clear(fkf);
+	mpz_clear(n);
+	mpz_clear(n2);
+	mpz_clear(xp1);
+	mpz_clear(xp2);
+	mpz_clear(ox);
+	mpz_clear(encZero);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mC);
+	
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("gfun%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_gcd512) {
+	unsigned reglen_bit = 512;
+
+	//printf("gcd%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+
+	mpz_gcd(mpz_mD, mpz_mA, mpz_mB);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("gcd%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_inv512) {
+	unsigned reglen_bit = 512;
+
+	//printf("inv%d in\n", reglen_bit);
+
+	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+	
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+
+	mpz_invert(mpz_mD, mpz_mA, mpz_mB);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
+
+	//printf("inv%d in\n", reglen_bit);
+}
+
+INSTRUCTION (le3_mter512) {
+	unsigned reglen_bit = 512;
+
+	//printf("mter%d in\n", reglen_bit);
+
+	orreg_t mD = PARAM0;
+	orreg_t rA = PARAM1;
+	orreg_t uimm = PARAM2;
+
+	int offset = E3_NUMWORDS - uimm - 1;
+	cpu_state.e3reg[mD][offset] = rA;
+
+	//printf("mD %u\t = rA %u\t[%u] :: %u\n", mD, rA, uimm, offset);
+	//printf("mter%d out\n", reglen_bit);
+}
+
+INSTRUCTION (le3_mfer512) {
+	unsigned reglen_bit = 512;
+
+	//printf("mfer%d in\n", reglen_bit);
+
+	orreg_t rD;
+	orreg_t mA = PARAM1;
+	orreg_t uimm = PARAM2;
+
+	int offset = E3_NUMWORDS - uimm - 1;
+	rD = cpu_state.e3reg[mA][offset];
+
+	//printf("rD %u\t = mA %u\t[%u] :: %u\n", rD, mA, uimm, offset);
+	SET_PARAM0(rD);
+
+	//printf("mfer%d out\n", reglen_bit);
+}
+
 /** MoMA end **/
 

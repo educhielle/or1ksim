@@ -379,23 +379,23 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
    EF (le3_inv512), 0, it_unknown},
 
 /* mter */
-  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA -KKK KKK- --11 1000",
+  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA KKKK KKK- --11 1000",
    EF (le3_mter4096), 0, it_unknown},
-  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA -KKK KKK- --10 1000",
+  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA KKKK KKK- --10 1000",
    EF (le3_mter2048), 0, it_unknown},
-  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA -KKK KKK- --01 1000",
+  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA KKKK KKK- --01 1000",
    EF (le3_mter1024), 0, it_unknown},
-  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA -KKK KKK- --00 1000",
+  {"le3.mter", "P,rA,K", "01 0xD  PPPPP AAAAA KKKK KKK- --00 1000",
    EF (le3_mter512), 0, it_unknown},
 
 /* mfer */
-  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ -KKK KKK- --11 1001",
+  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ KKKK KKK- --11 1001",
    EF (le3_mfer4096), 0, it_unknown},
-  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ -KKK KKK- --10 1001",
+  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ KKKK KKK- --10 1001",
    EF (le3_mfer2048), 0, it_unknown},
-  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ -KKK KKK- --01 1001",
+  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ KKKK KKK- --01 1001",
    EF (le3_mfer1024), 0, it_unknown},
-  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ -KKK KKK- --00 1001",
+  {"le3.mfer", "rD,Q,K", "01 0xD  DDDDD QQQQQ KKKK KKK- --00 1001",
    EF (le3_mfer512), 0, it_unknown},
 
 /*  {"moma.get", "rD,rA,K", "01 0xD  DDDDD AAAAA KKKK KKKK KK-- 0x0",

@@ -574,6 +574,40 @@ e3extensions_set_extra_cycles (int extra_cycles)
 {
 	e3extensions_cycles = extra_cycles;
 }
+
+static void
+e3extensions_set_mpz (mpz_t* mpz_mA, orreg_t mA, unsigned reglen_bits)
+{
+	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
+	int offset = E3_NUMWORDS - reglen_words;
+
+	mpz_t baseWord;
+	mpz_init_set_str(baseWord, E3_STDHEXBASE, 16);
+
+	mpz_init(mpz_mA);
+
+	for (int i  = 0; i < reglen_words; i++)
+	{
+		mpz_mul(mpz_mA, mpz_mA, baseWord);
+		mpz_add_ui(mpz_mA, mpz_mA, cpu_state.e3reg[mA][offset+i]);
+	}
+}
+
+static void
+e3extensions_set_e3reg (orreg_t mD, mpz_t mpz_mD, unsigned reglen_bits)
+{
+	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
+	int offset = E3_NUMWORDS - reglen_words;
+
+	mpz_t baseWord;
+	mpz_init_set_str(baseWord, E3_STDHEXBASE, 16);
+
+	for (int i = reglen_words - 1; i >= 0; i--)
+	{
+		cpu_state.e3reg[mD][offset+i] = (uorreg_t) mpz_get_ui(mpz_mD);
+		mpz_tdiv_q(mpz_mD, mpz_mD, baseWord);
+	}
+}
 /** MoMA end **/
 
 /*---------------------------------------------------------------------------*/
