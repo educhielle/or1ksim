@@ -1331,7 +1331,6 @@ INSTRUCTION (le3_modexp4096) {
 
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
-
 	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
 
 	//gmp_printf("%Zx ^ %Zx mod %Zx\n", mpz_mA, mpz_mB, mpz_mC);
@@ -1369,43 +1368,29 @@ INSTRUCTION (le3_gfun4096) {
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
 
-	mpz_t fkf, n, n2, xp1, xp2, ox, encZero;
-	mpz_init(fkf);
+	if (!csLoaded) loadCryptosystem();
+
+	mpz_t ox, n, n2;
+	mpz_init(ox);
 	mpz_init(n);
 	mpz_init(n2);
-	mpz_init(xp1);
-	mpz_init(xp2);
-	mpz_init(ox);
-	mpz_init(encZero);
-
-	mpz_set_str(fkf, "3480", 10);
-	//mpz_set_str(n, "143", 10);
-	//mpz_mul(n2, n, n);
 	mpz_set(n2, mpz_mC);
 	mpz_root(n, n2, 2);
-	mpz_set_str(xp1, "144", 10);
-	mpz_set_str(xp2, "18304", 10);
-	mpz_set_str(encZero, "12825", 10);
 
 	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
-
 	mpz_powm(ox, mpz_mA, fkf, n2);
 
 	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
 	{
-		mpz_set(mpz_mD, encZero);
+		mpz_set(mpz_mD, zero);
 	}
 	else
 	{
 		mpz_set(mpz_mD, mpz_mB);
 	}
-	mpz_clear(fkf);
 	mpz_clear(n);
 	mpz_clear(n2);
-	mpz_clear(xp1);
-	mpz_clear(xp2);
 	mpz_clear(ox);
-	mpz_clear(encZero);
 
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
@@ -1601,43 +1586,29 @@ INSTRUCTION (le3_gfun2048) {
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
 
-	mpz_t fkf, n, n2, xp1, xp2, ox, encZero;
-	mpz_init(fkf);
+	if (!csLoaded) loadCryptosystem();
+
+	mpz_t ox, n, n2;
+	mpz_init(ox);
 	mpz_init(n);
 	mpz_init(n2);
-	mpz_init(xp1);
-	mpz_init(xp2);
-	mpz_init(ox);
-	mpz_init(encZero);
-
-	mpz_set_str(fkf, "3480", 10);
-	//mpz_set_str(n, "143", 10);
-	//mpz_mul(n2, n, n);
 	mpz_set(n2, mpz_mC);
 	mpz_root(n, n2, 2);
-	mpz_set_str(xp1, "144", 10);
-	mpz_set_str(xp2, "18304", 10);
-	mpz_set_str(encZero, "12825", 10);
 
 	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
-
 	mpz_powm(ox, mpz_mA, fkf, n2);
 
 	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
 	{
-		mpz_set(mpz_mD, encZero);
+		mpz_set(mpz_mD, zero);
 	}
 	else
 	{
 		mpz_set(mpz_mD, mpz_mB);
 	}
-	mpz_clear(fkf);
 	mpz_clear(n);
 	mpz_clear(n2);
-	mpz_clear(xp1);
-	mpz_clear(xp2);
 	mpz_clear(ox);
-	mpz_clear(encZero);
 
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
@@ -1833,43 +1804,29 @@ INSTRUCTION (le3_gfun1024) {
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
 
-	mpz_t fkf, n, n2, xp1, xp2, ox, encZero;
-	mpz_init(fkf);
+	if (!csLoaded) loadCryptosystem();
+
+	mpz_t ox, n, n2;
+	mpz_init(ox);
 	mpz_init(n);
 	mpz_init(n2);
-	mpz_init(xp1);
-	mpz_init(xp2);
-	mpz_init(ox);
-	mpz_init(encZero);
-
-	mpz_set_str(fkf, "3480", 10);
-	//mpz_set_str(n, "143", 10);
-	//mpz_mul(n2, n, n);
 	mpz_set(n2, mpz_mC);
 	mpz_root(n, n2, 2);
-	mpz_set_str(xp1, "144", 10);
-	mpz_set_str(xp2, "18304", 10);
-	mpz_set_str(encZero, "12825", 10);
 
 	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
-
 	mpz_powm(ox, mpz_mA, fkf, n2);
 
 	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
 	{
-		mpz_set(mpz_mD, encZero);
+		mpz_set(mpz_mD, zero);
 	}
 	else
 	{
 		mpz_set(mpz_mD, mpz_mB);
 	}
-	mpz_clear(fkf);
 	mpz_clear(n);
 	mpz_clear(n2);
-	mpz_clear(xp1);
-	mpz_clear(xp2);
 	mpz_clear(ox);
-	mpz_clear(encZero);
 
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
@@ -1880,7 +1837,6 @@ INSTRUCTION (le3_gfun1024) {
 
 	//printf("gfun%d out\n", reglen_bit);
 }
-
 INSTRUCTION (le3_gcd1024) {
 	unsigned reglen_bit = 1024;
 
@@ -2066,43 +2022,29 @@ INSTRUCTION (le3_gfun512) {
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
 
-	mpz_t fkf, n, n2, xp1, xp2, ox, encZero;
-	mpz_init(fkf);
+	if (!csLoaded) loadCryptosystem();
+
+	mpz_t ox, n, n2;
+	mpz_init(ox);
 	mpz_init(n);
 	mpz_init(n2);
-	mpz_init(xp1);
-	mpz_init(xp2);
-	mpz_init(ox);
-	mpz_init(encZero);
-
-	mpz_set_str(fkf, "1412860660622891328", 10);
-	//mpz_set_str(n, "143", 10);
-	//mpz_mul(n2, n, n);
 	mpz_set(n2, mpz_mC);
 	mpz_root(n, n2, 2);
-	mpz_set_str(xp1, "1947539682", 10);
-	mpz_set_str(xp2, "2091154809389318144", 10);
-	mpz_set_str(encZero, "2261725872051577585", 10);
 
 	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
-
 	mpz_powm(ox, mpz_mA, fkf, n2);
 
 	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
 	{
-		mpz_set(mpz_mD, encZero);
+		mpz_set(mpz_mD, zero);
 	}
 	else
 	{
 		mpz_set(mpz_mD, mpz_mB);
 	}
-	mpz_clear(fkf);
 	mpz_clear(n);
 	mpz_clear(n2);
-	mpz_clear(xp1);
-	mpz_clear(xp2);
 	mpz_clear(ox);
-	mpz_clear(encZero);
 
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);

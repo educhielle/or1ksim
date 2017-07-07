@@ -608,6 +608,52 @@ e3extensions_set_e3reg (orreg_t mD, mpz_t mpz_mD, unsigned reglen_bits)
 		mpz_tdiv_q(mpz_mD, mpz_mD, baseWord);
 	}
 }
+
+mpz_t fkf, xp1, xp2, zero;
+int csLoaded = 0;
+static void loadCryptosystem()
+{
+	FILE *fp;
+	fp=fopen("CS.txt","r");
+
+	int mark = 0, i = 0;
+	char c;
+	char word[1000];
+	while ((c = getc(fp)) != EOF)
+	{
+		if (c == ';' || c == '\n')
+		{
+			word[i] = '\0';
+			switch (mark)
+			{
+				// case 0: obj name
+				// case 1: p
+				// case 2: q
+				// case 3: k
+				// case 4: beta
+				case 5: mpz_set_str(fkf, word, 10); break;
+				// case 6: mpz_set_str(_g, word, 10); break;
+				// case 7: n
+				case 8: mpz_set_str(xp1, word, 10); break;
+				case 9: mpz_set_str(xp2, word, 10); break;
+				case 10: mpz_set_str(zero, word, 10); break;
+				// case 11: one
+					
+			}
+			mark++;
+			i = 0;
+			word[0] = '\0';
+		}
+		else
+		{
+			word[i++] = c;
+		}
+	}
+
+	fclose(fp);
+	csLoaded = 1;
+}
+
 /** MoMA end **/
 
 /*---------------------------------------------------------------------------*/
