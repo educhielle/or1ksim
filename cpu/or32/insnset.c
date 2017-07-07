@@ -2075,14 +2075,14 @@ INSTRUCTION (le3_gfun512) {
 	mpz_init(ox);
 	mpz_init(encZero);
 
-	mpz_set_str(fkf, "3480", 10);
+	mpz_set_str(fkf, "1412860660622891328", 10);
 	//mpz_set_str(n, "143", 10);
 	//mpz_mul(n2, n, n);
 	mpz_set(n2, mpz_mC);
 	mpz_root(n, n2, 2);
-	mpz_set_str(xp1, "144", 10);
-	mpz_set_str(xp2, "18304", 10);
-	mpz_set_str(encZero, "12825", 10);
+	mpz_set_str(xp1, "1947539682", 10);
+	mpz_set_str(xp2, "2091154809389318144", 10);
+	mpz_set_str(encZero, "2261725872051577585", 10);
 
 	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
 
