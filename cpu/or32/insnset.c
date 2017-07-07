@@ -2031,8 +2031,9 @@ INSTRUCTION (le3_gfun512) {
 	mpz_set(n2, mpz_mC);
 	mpz_root(n, n2, 2);
 
-	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
+	//gmp_printf("FKF: %Zd\nXP1: %Zd\nXP2: %Zd\nP3: %Zd\tN: %Zd\n", fkf, xp1, xp2, mpz_mC, n2);
 	mpz_powm(ox, mpz_mA, fkf, n2);
+	//gmp_printf("X: %Zd\nY: %Zd\nox: %Zd\n", mpz_mA, mpz_mB, ox);
 
 	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
 	{
