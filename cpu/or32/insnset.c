@@ -1380,14 +1380,16 @@ INSTRUCTION (le3_gfun4096) {
 	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
 	mpz_powm(ox, mpz_mA, fkf, n2);
 
+	//gmp_printf("FKF: %Zd\nXP1: %Zd\nXP2: %Zd\nP3: %Zd\tN: %Zd\n", fkf, xp1, xp2, mpz_mC, n2);
+	mpz_powm(ox, mpz_mA, fkf, n2);
+	//gmp_printf("X: %Zd\nY: %Zd\nox: %Zd\n", mpz_mA, mpz_mB, ox);
+
 	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
-	{
 		mpz_set(mpz_mD, zero);
-	}
 	else
-	{
 		mpz_set(mpz_mD, mpz_mB);
-	}
+	reencrypt(mpz_mD);
+
 	mpz_clear(n);
 	mpz_clear(n2);
 	mpz_clear(ox);
@@ -1407,7 +1409,7 @@ INSTRUCTION (le3_gcd4096) {
 
 	//printf("gcd%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+	e3extensions_set_extra_cycles(4*reglen_bit); // worst case
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -1436,7 +1438,7 @@ INSTRUCTION (le3_inv4096) {
 
 	//printf("inv%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+	e3extensions_set_extra_cycles(4*reglen_bit); // worst case
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -1598,14 +1600,16 @@ INSTRUCTION (le3_gfun2048) {
 	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
 	mpz_powm(ox, mpz_mA, fkf, n2);
 
+	//gmp_printf("FKF: %Zd\nXP1: %Zd\nXP2: %Zd\nP3: %Zd\tN: %Zd\n", fkf, xp1, xp2, mpz_mC, n2);
+	mpz_powm(ox, mpz_mA, fkf, n2);
+	//gmp_printf("X: %Zd\nY: %Zd\nox: %Zd\n", mpz_mA, mpz_mB, ox);
+
 	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
-	{
 		mpz_set(mpz_mD, zero);
-	}
 	else
-	{
 		mpz_set(mpz_mD, mpz_mB);
-	}
+	reencrypt(mpz_mD);
+
 	mpz_clear(n);
 	mpz_clear(n2);
 	mpz_clear(ox);
@@ -1625,7 +1629,7 @@ INSTRUCTION (le3_gcd2048) {
 
 	//printf("gcd%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+	e3extensions_set_extra_cycles(4*reglen_bit); // worst case
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -1654,7 +1658,7 @@ INSTRUCTION (le3_inv2048) {
 
 	//printf("inv%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+	e3extensions_set_extra_cycles(4*reglen_bit); // worst case
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -1816,14 +1820,16 @@ INSTRUCTION (le3_gfun1024) {
 	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
 	mpz_powm(ox, mpz_mA, fkf, n2);
 
+	//gmp_printf("FKF: %Zd\nXP1: %Zd\nXP2: %Zd\nP3: %Zd\tN: %Zd\n", fkf, xp1, xp2, mpz_mC, n2);
+	mpz_powm(ox, mpz_mA, fkf, n2);
+	//gmp_printf("X: %Zd\nY: %Zd\nox: %Zd\n", mpz_mA, mpz_mB, ox);
+
 	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
-	{
 		mpz_set(mpz_mD, zero);
-	}
 	else
-	{
 		mpz_set(mpz_mD, mpz_mB);
-	}
+	reencrypt(mpz_mD);
+
 	mpz_clear(n);
 	mpz_clear(n2);
 	mpz_clear(ox);
@@ -1842,7 +1848,7 @@ INSTRUCTION (le3_gcd1024) {
 
 	//printf("gcd%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+	e3extensions_set_extra_cycles(4*reglen_bit); // worst case
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -1871,7 +1877,7 @@ INSTRUCTION (le3_inv1024) {
 
 	//printf("inv%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+	e3extensions_set_extra_cycles(4*reglen_bit); // worst case
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -2036,13 +2042,11 @@ INSTRUCTION (le3_gfun512) {
 	//gmp_printf("X: %Zd\nY: %Zd\nox: %Zd\n", mpz_mA, mpz_mB, ox);
 
 	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
-	{
 		mpz_set(mpz_mD, zero);
-	}
 	else
-	{
 		mpz_set(mpz_mD, mpz_mB);
-	}
+	reencrypt(mpz_mD);
+
 	mpz_clear(n);
 	mpz_clear(n2);
 	mpz_clear(ox);
@@ -2062,7 +2066,7 @@ INSTRUCTION (le3_gcd512) {
 
 	//printf("gcd%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+	e3extensions_set_extra_cycles(4*reglen_bit); // worst case
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -2091,7 +2095,7 @@ INSTRUCTION (le3_inv512) {
 
 	//printf("inv%d in\n", reglen_bit);
 
-	e3extensions_set_extra_cycles(2*reglen_bit); // worst case
+	e3extensions_set_extra_cycles(4*reglen_bit); // worst case
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;

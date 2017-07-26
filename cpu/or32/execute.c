@@ -609,8 +609,8 @@ e3extensions_set_e3reg (orreg_t mD, mpz_t mpz_mD, unsigned reglen_bits)
 	}
 }
 
-mpz_t fkf, xp1, xp2, zero;
-int csLoaded = 0;
+mpz_t fkf, xp1, xp2, n, n2, zero, rN;
+int csLoaded = 0, firstRandom = 1;
 static void loadCryptosystem()
 {
 	FILE *fp;
@@ -618,7 +618,7 @@ static void loadCryptosystem()
 
 	int mark = 0, i = 0;
 	char c;
-	char word[1000];
+	char word[2000];
 	while ((c = getc(fp)) != EOF)
 	{
 		if (c == ';' || c == '\n')
@@ -631,12 +631,12 @@ static void loadCryptosystem()
 				// case 2: q
 				// case 3: k
 				// case 4: beta
-				case 5: mpz_set_str(fkf, word, 10); break;
+				case 5: mpz_init_set_str(fkf, word, 10); break;
 				// case 6: mpz_set_str(_g, word, 10); break;
-				// case 7: n
-				case 8: mpz_set_str(xp1, word, 10); break;
-				case 9: mpz_set_str(xp2, word, 10); break;
-				case 10: mpz_set_str(zero, word, 10); break;
+				case 7: mpz_init_set_str(n, word, 10); mpz_mul(n2, n, n); break;
+				case 8: mpz_init_set_str(xp1, word, 10); break;
+				case 9: mpz_init_set_str(xp2, word, 10); break;
+				case 10: mpz_init_set_str(zero, word, 10); break;
 				// case 11: one
 					
 			}
@@ -652,6 +652,24 @@ static void loadCryptosystem()
 
 	fclose(fp);
 	csLoaded = 1;
+}
+
+void reencrypt(mpz_t* x)
+{
+	if (firstRandom)
+	{
+		mpz_init_set_ui(rN, 2);
+		mpz_powm(rN, rN, n, n2);
+		firstRandom = 0;
+	}
+	else
+	{
+		mpz_mul(rN, rN, rN);
+		mpz_mod(rN, rN, n2);
+	}
+
+	mpz_mul(x, rN, x);
+	mpz_mod(x, x, n2);
 }
 
 /** MoMA end **/
