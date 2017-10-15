@@ -82,7 +82,7 @@
 #define SPRGROUP_FP	(11<< MAX_SPRS_PER_GRP_BITS)
 
 /** MoMA begin **/
-#define E3_NUMREGS		4
+#define E3_NUMREGS		16
 #define E3_REGLEN		4096
 #define E3_STDWORDSIZE		32
 #define E3_STDHEXBASE		"100000000"

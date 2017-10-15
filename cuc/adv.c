@@ -213,15 +213,8 @@ static unsigned long calc_max (cuc_func *f, int ref)
 /** MoMA begin **/
     case II_MOD : return max_op (f, ref, 1);
 /** MoMA **/
-
-/** MoMA begin **/
-/* backup begin */
     case II_MUL : return MIN ((unsigned long long) max_op (f, ref, 1)
                             * (unsigned long long)max_op (f, ref, 2), 0xffffffff);
-/* backup end */
-//    case II_MUL : return MIN (((unsigned long long) max_op (f, ref, 1)
-//                            * (unsigned long long)max_op (f, ref, 2))%1000, 0xffffffff);
-/** MoMA end **/
     case II_SLL : if (ii->opt[2] & OPT_CONST) return max_op (f, ref, 1) << ii->op[2];
                   else return max_op (f, ref, 1);
     case II_SRA : return max_op (f, ref, 1);
