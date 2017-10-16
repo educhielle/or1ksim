@@ -58,12 +58,8 @@
 /* Definition of special-purpose registers (SPRs). */
 
 #define MAX_GRPS (32)
-/** MoMA begin **/
-/** backup begin **/
 #define MAX_SPRS_PER_GRP_BITS (11)
-/** backup end **/
-//#define MAX_SPRS_PER_GRP_BITS (12)
-/** MoMA end **/
+
 #define MAX_SPRS_PER_GRP (1 << MAX_SPRS_PER_GRP_BITS)
 #define MAX_SPRS (0x10000)
 
@@ -80,6 +76,9 @@
 #define SPRGROUP_PIC	(9<< MAX_SPRS_PER_GRP_BITS)
 #define SPRGROUP_TT	(10<< MAX_SPRS_PER_GRP_BITS)
 #define SPRGROUP_FP	(11<< MAX_SPRS_PER_GRP_BITS)
+/** MoMA begin **/
+#define SPRGROUP_E3	(12<< MAX_SPRS_PER_GRP_BITS)
+/** MoMA end **/
 
 /** MoMA begin **/
 #define E3_NUMREGS		16
@@ -87,6 +86,8 @@
 #define E3_STDWORDSIZE		32
 #define E3_STDHEXBASE		"100000000"
 #define E3_NUMWORDS		E3_REGLEN / E3_STDWORDSIZE
+
+#define SPR_E3_CTRL0	(SPRGROUP_E3 + 0)
 /** MoMA end **/
 
 /* System control and status group */

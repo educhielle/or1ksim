@@ -1261,10 +1261,36 @@ INSTRUCTION (l_mod) {
   SET_PARAM0(temp1);
 }
 
+// Secure Computation
+
+// Other
+
+INSTRUCTION (le_mfer) {
+	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
+
+	orreg_t rD;
+	orreg_t mA = PARAM1;
+	orreg_t uimm = PARAM2;
+	uimm = e3extensions_filter_imm(uimm, reglen_bit);
+
+	rD = cpu_state.e3reg[mA][uimm];
+	SET_PARAM0(rD);
+}
+
+INSTRUCTION (le_mter) {
+	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t rA = PARAM1;
+	orreg_t uimm = PARAM2;
+	uimm = e3extensions_filter_imm(uimm, reglen_bit);
+
+	cpu_state.e3reg[mD][uimm] = rA;
+}
+
 //Acceleration
 
-INSTRUCTION (le_add)
-{
+INSTRUCTION (le_add) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1279,15 +1305,15 @@ INSTRUCTION (le_add)
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_add(mpz_mD, mpz_mA, mpz_mB);
+
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
-
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_and)
-{
+INSTRUCTION (le_and) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1302,21 +1328,21 @@ INSTRUCTION (le_and)
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_and(mpz_mD, mpz_mA, mpz_mB);
+
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+
+	mpz_clear(mpz_mD);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
-
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
-	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_not)
-{
+INSTRUCTION (le_not) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 
-	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_t mpz_mD, mpz_mA;
 	mpz_init(mpz_mD);
 	mpz_init(mpz_mA);
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
@@ -1324,12 +1350,11 @@ INSTRUCTION (le_not)
 	mpz_com(mpz_mD, mpz_mA);
 	mpz_clear(mpz_mA);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_or)
-{
+INSTRUCTION (le_or) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1344,15 +1369,15 @@ INSTRUCTION (le_or)
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_ior(mpz_mD, mpz_mA, mpz_mB);
+
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
-
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_cmov)
-{
+INSTRUCTION (le_cmov) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1368,12 +1393,11 @@ INSTRUCTION (le_cmov)
 	else
 		e3extensions_set_mpz(mpz_mD, mB, reglen_bit);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_dec)
-{
+INSTRUCTION (le_dec) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1384,12 +1408,11 @@ INSTRUCTION (le_dec)
 
 	mpz_sub_ui(mpz_mD, mpz_mD, 1);
 	
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_divs)
-{
+INSTRUCTION (le_divs) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1414,12 +1437,11 @@ INSTRUCTION (le_divs)
 	mpz_clear(mpz_mB);
 
 	if (signA ^ signB) e3extensions_twos_complement(mpz_mD);
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_divu)
-{
+INSTRUCTION (le_divu) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1437,12 +1459,11 @@ INSTRUCTION (le_divu)
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_eq)
-{
+INSTRUCTION (le_eq) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1458,15 +1479,15 @@ INSTRUCTION (le_eq)
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) == 0);
 	mpz_set_ui(mpz_mD, cmp);
+
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
-
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_xor)
-{
+INSTRUCTION (le_xor) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1484,12 +1505,11 @@ INSTRUCTION (le_xor)
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_pows)
-{
+INSTRUCTION (le_pows) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1515,12 +1535,11 @@ INSTRUCTION (le_pows)
 	mpz_clear(mpz_limit);
 
 	if (signA) e3extensions_twos_complement(mpz_mD);
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_powu)
-{
+INSTRUCTION (le_powu) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1541,12 +1560,11 @@ INSTRUCTION (le_powu)
 	mpz_clear(mpz_mB);
 	mpz_clear(mpz_limit);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_ff1)
-{
+INSTRUCTION (le_ff1) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1558,12 +1576,11 @@ INSTRUCTION (le_ff1)
 	unsigned pos = e3extensions_ff1(mA, reglen_bit);
 	mpz_set_ui(mpz_mD, pos);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);	
 }
 
-INSTRUCTION (le_fl1)
-{
+INSTRUCTION (le_fl1) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1575,12 +1592,11 @@ INSTRUCTION (le_fl1)
 	unsigned pos = e3extensions_fl1(mA, reglen_bit);
 	mpz_set_ui(mpz_mD, pos);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);	
 }
 
-INSTRUCTION (le_gcd)
-{
+INSTRUCTION (le_gcd) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1601,22 +1617,21 @@ INSTRUCTION (le_gcd)
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
-	e3extension_set_e3reg(mE, mpz_mE, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mE, mpz_mE, reglen_bit);
 	mpz_clear(mpz_mD);
 	mpz_clear(mpz_mE);
 }
 
-INSTRUCTION (le_ges)
-{
+INSTRUCTION (le_ges) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
-
-	unsigned signA = e3extensions_get_sign(mA, reglen_bit);
-	unsigned signB = e3extensions_get_sign(mB, reglen_bit);
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
+
+	unsigned signA = e3extensions_get_sign(mA, reglen_bit);
+	unsigned signB = e3extensions_get_sign(mB, reglen_bit);
 
 	mpz_t mpz_mD;
 	mpz_init(mpz_mD);
@@ -1640,12 +1655,11 @@ INSTRUCTION (le_ges)
 		mpz_clear(mpz_mB);
 	}
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_geu)
-{
+INSTRUCTION (le_geu) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1664,20 +1678,19 @@ INSTRUCTION (le_geu)
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_gts)
-{
+INSTRUCTION (le_gts) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
-
-	unsigned signA = e3extensions_get_sign(mA, reglen_bit);
-	unsigned signB = e3extensions_get_sign(mB, reglen_bit);
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
+
+	unsigned signA = e3extensions_get_sign(mA, reglen_bit);
+	unsigned signB = e3extensions_get_sign(mB, reglen_bit);
 
 	mpz_t mpz_mD;
 	mpz_init(mpz_mD);
@@ -1701,12 +1714,11 @@ INSTRUCTION (le_gts)
 		mpz_clear(mpz_mB);
 	}
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_gtu)
-{
+INSTRUCTION (le_gtu) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1725,12 +1737,11 @@ INSTRUCTION (le_gtu)
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_inc)
-{
+INSTRUCTION (le_inc) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1741,20 +1752,19 @@ INSTRUCTION (le_inc)
 
 	mpz_add_ui(mpz_mD, mpz_mD, 1);
 	
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_les)
-{
+INSTRUCTION (le_les) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
-
-	unsigned signA = e3extensions_get_sign(mA, reglen_bit);
-	unsigned signB = e3extensions_get_sign(mB, reglen_bit);
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
+
+	unsigned signA = e3extensions_get_sign(mA, reglen_bit);
+	unsigned signB = e3extensions_get_sign(mB, reglen_bit);
 
 	mpz_t mpz_mD;
 	mpz_init(mpz_mD);
@@ -1778,12 +1788,11 @@ INSTRUCTION (le_les)
 		mpz_clear(mpz_mB);
 	}
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_leu)
-{
+INSTRUCTION (le_leu) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1802,20 +1811,19 @@ INSTRUCTION (le_leu)
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_lts)
-{
+INSTRUCTION (le_lts) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
-
-	unsigned signA = e3extensions_get_sign(mA, reglen_bit);
-	unsigned signB = e3extensions_get_sign(mB, reglen_bit);
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
+
+	unsigned signA = e3extensions_get_sign(mA, reglen_bit);
+	unsigned signB = e3extensions_get_sign(mB, reglen_bit);
 
 	mpz_t mpz_mD;
 	mpz_init(mpz_mD);
@@ -1839,12 +1847,11 @@ INSTRUCTION (le_lts)
 		mpz_clear(mpz_mB);
 	}
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_ltu)
-{
+INSTRUCTION (le_ltu) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1863,12 +1870,11 @@ INSTRUCTION (le_ltu)
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_land)
-{
+INSTRUCTION (le_land) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1882,17 +1888,16 @@ INSTRUCTION (le_land)
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-	unsigned cmp = mpz_cmp_ui(mpz_mA, 0) && mpz_cmp_ui(mpz_mB, 0);
+	unsigned cmp = (mpz_cmp_ui(mpz_mA, 0) && mpz_cmp_ui(mpz_mB, 0));
 	mpz_set_ui(mpz_mD, cmp);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_lnot)
-{
+INSTRUCTION (le_lnot) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1907,12 +1912,11 @@ INSTRUCTION (le_lnot)
 	mpz_set_ui(mpz_mD, cmp);
 	mpz_clear(mpz_mA);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_lor)
-{
+INSTRUCTION (le_lor) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1926,17 +1930,16 @@ INSTRUCTION (le_lor)
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-	unsigned cmp = mpz_cmp_ui(mpz_mA, 0) || mpz_cmp_ui(mpz_mB, 0);
+	unsigned cmp = (mpz_cmp_ui(mpz_mA, 0) || mpz_cmp_ui(mpz_mB, 0));
 	mpz_set_ui(mpz_mD, cmp);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_mods)
-{
+INSTRUCTION (le_mods) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1961,12 +1964,11 @@ INSTRUCTION (le_mods)
 	mpz_clear(mpz_mB);
 
 	if (signA) e3extensions_twos_complement(mpz_mD);
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_modu)
-{
+INSTRUCTION (le_modu) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -1984,12 +1986,11 @@ INSTRUCTION (le_modu)
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_macs)
-{
+INSTRUCTION (le_macs) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -2014,12 +2015,11 @@ INSTRUCTION (le_macs)
 	mpz_clear(mpz_mB);
 
 	if (signA ^ signB) e3extensions_twos_complement(mpz_mD);
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_macu)
-{
+INSTRUCTION (le_macu) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -2037,12 +2037,11 @@ INSTRUCTION (le_macu)
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_msbs)
-{
+INSTRUCTION (le_msbs) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -2067,12 +2066,11 @@ INSTRUCTION (le_msbs)
 	mpz_clear(mpz_mB);
 
 	if (signA ^ signB) e3extensions_twos_complement(mpz_mD);
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_msbu)
-{
+INSTRUCTION (le_msbu) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -2090,454 +2088,209 @@ INSTRUCTION (le_msbu)
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
-#define E3_GET_EDS \
+INSTRUCTION (le_muls) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
-#define E3_INIT_D \
-	orreg_t mD = PARAM0; \
-	mpz_t mpz_mD; \
-	mpz_init(mpz_mD);
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
 
-#define E3_INIT_A \
-	orreg_t mA = PARAM1; \
-	mpz_t mpz_mA; \
-	mpz_init(mpz_mA);
-
-#define E3_INIT_B \
-	orreg_t mB = PARAM2; \
-	mpz_t mpz_mB; \
-	mpz_init(mpz_mB);
-
-#define E3_INIT_D \
-	orreg_t mD = PARAM0; \
-	mpz_t mpz_mD; \
-	mpz_init(mpz_mD);
-
-#define E3_INIT_DA \
-	E3_INIT_D \
-	E3_INIT_A
-
-#define E3_INIT_DAB \
-	E3_INIT_DA \
-	E3_INIT_B
-
-#define E3_INIT_DEAB \
-	E3_INIT_DE \
-	E3_INIT_A \
-	E3_INIT_B
-
-#define E3_INIT_DE \
-	E3_INIT_D \
-	orreg_t mE = (mD + 1) % E3_NUMREGS; \
-	mpz_t mpz_mE; \
-	mpz_init(mpz_mE);
-
-#define E3_GET_A \
-	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
-
-#define E3_GET_B \
-	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
-
-#define E3_GET_AB \
-	E3_GET_A \
-	E3_GET_B
-
-#define E3_GET_SIGN_A \
 	unsigned signA = e3extensions_get_sign(mA, reglen_bit);
-
-#define E3_GET_SIGN_B \
 	unsigned signB = e3extensions_get_sign(mB, reglen_bit);
 
-#define E3_GET_SIGN_AB \
-	E3_GET_SIGN_A \
-	E3_GET_SIGN_B
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-#define E3_TWOS_COMPLEMENT_A \
 	if (signA) e3extensions_twos_complement(mpz_mA);
-
-#define E3_TWOS_COMPLEMENT_B \
 	if (signB) e3extensions_twos_complement(mpz_mB);
 
-#define E3_TWOS_COMPLEMENT_AB \
-	E3_TWOS_COMPLEMENT_A \
-	E3_TWOS_COMPLEMENT_B
+	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
 
-#define E3_TWOS_COMPLEMENT_D_condAB \
-	if (signA ^ signB) e3extensions_twos_complement(mpz_mD);
-
-#define E3_CLEAR_A \
 	mpz_clear(mpz_mA);
-
-#define E3_CLEAR_B \
 	mpz_clear(mpz_mB);
 
-#define E3_CLEAR_D \
+	if (signA ^ signB) e3extensions_twos_complement(mpz_mD);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
+}
 
-#define E3_CLEAR_E \
-	mpz_clear(mpz_mE);
+INSTRUCTION (le_mulu) {
+	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
-#define E3_CLEAR_DA \
-	E3_CLEAR_D \
-	E3_CLEAR_A
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
 
-#define E3_CLEAR_DAB \
-	E3_CLEAR_DA \
-	E3_CLEAR_B
-
-#define E3_CLEAR_DEAB \
-	E3_CLEAR_DAB \
-	E3_CLEAR_E
-
-#define E3_SET_D \
-	e3extension_set_e3reg(mD, mpz_mD, reglen_bit);
-
-#define E3_SET_E \
-	e3extension_set_e3reg(mE, mpz_mE, reglen_bit);
-
-#define E3_SET_DE \
-	E3_SET_D \
-	E3_SET_E
-
-INSTRUCTION (le_muls)
-{
-	E3_GET_EDS
-	E3_INIT_DAB
-	E3_GET_AB
-	E3_GET_SIGN_AB
-	E3_TWOS_COMPLEMENT_AB
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
 
-	E3_TWOS_COMPLEMENT_D_condAB
-	E3_SET_D
-	E3_CLEAR_DAB
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_mulu)
-{
-	E3_GET_EDS
-	E3_INIT_DAB
-	E3_GET_AB
+INSTRUCTION (le_ne) {
+	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 
-	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
 
-	E3_SET_D
-	E3_CLEAR_DAB
-}
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-INSTRUCTION (le_ne)
-{
-	E3_GET_EDS
-	E3_INIT_DAB
-	E3_GET_AB
-
-	unsigned cmp = (mpz_cmp(mpz_mD, mpz_mA, mpz_mB) != 0);
+	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) != 0);
 	mpz_set_ui(mpz_mD, cmp);
 
-	E3_SET_D
-	E3_CLEAR_DAB
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_rand)
-{
-	E3_GET_EDS
-	E3_INIT_D
+INSTRUCTION (le_rand) {
+	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+
+	mpz_t mpz_mD;
+	mpz_init(mpz_mD);
 
 	gmp_randstate_t state;
-	mpz_randinit(state);
+	unsigned seed = rand();
+	gmp_randinit_default(state);
+	gmp_randseed_ui(state, seed);
 	mpz_urandomb(mpz_mD, state, reglen_bit);
 
-	E3_SET_D
-	E3_CLEAR_DAB
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_ror)
-{
+INSTRUCTION (le_ror) {
+	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
 	//??
 }
 
-INSTRUCTION (le_sll)
-{
-	E3_GET_EDS
-	E3_INIT_DAB
-	E3_GET_AB
+INSTRUCTION (le_sll) {
+	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
 	unsigned shift = mpz_get_ui(mpz_mB);
 	mpz_mul_2exp(mpz_mD, mpz_mA, shift);
 
-	E3_SET_D
-	E3_CLEAR_DAB
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_sra)
-{
-	E3_GET_EDS
-	E3_INIT_DAB
-	E3_GET_AB
-	E3_GET_SIGN_A
+INSTRUCTION (le_sra) {
+	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	unsigned signA = e3extensions_get_sign(mA, reglen_bit);
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+
+	if (signA) e3extensions_twos_complement(mpz_mA);
 
 	unsigned shift = mpz_get_ui(mpz_mB);
 	mpz_tdiv_q_2exp(mpz_mD, mpz_mA, shift);
 
-	E3_SET_D
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	e3extensions_extend_sign(mD, signA, reglen_bit);
 
-	E3_CLEAR_DAB
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_srl)
-{
-	E3_GET_EDS
-	E3_INIT_DAB
-	E3_GET_AB
-	E3_GET_SIGN_A
+INSTRUCTION (le_srl) {
+	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
 	unsigned shift = mpz_get_ui(mpz_mB);
 	mpz_tdiv_q_2exp(mpz_mD, mpz_mA, shift);
 
-	E3_SET_D
-	E3_CLEAR_DAB
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
 }
 
-INSTRUCTION (le_sub)
-{
-	E3_GET_EDS
-	E3_INIT_DAB
-	E3_GET_AB
+INSTRUCTION (le_sub) {
+	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
+	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_sub(mpz_mD, mpz_mA, mpz_mB);
 
-	E3_SET_D
-	E3_CLEAR_DAB
-}
-
-/*
-INSTRUCTION (le3_modmul4096) {
-	unsigned reglen_bit = 4096;
-
-	//printf("modmul%d in\n", reglen_bit);
-
-	e3extensions_set_extra_cycles(reglen_bit);
-
-	orreg_t mD = PARAM0;
-	orreg_t mA = PARAM1;
-	orreg_t mB = PARAM2;
-	orreg_t mC = PARAM3;
-	
-	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
-	mpz_init(mpz_mD);
-	mpz_init(mpz_mA);
-	mpz_init(mpz_mB);
-	mpz_init(mpz_mC);
-	
-	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
-	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
-	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
-
-	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
-	mpz_mod(mpz_mD, mpz_mD, mpz_mC);
-
-	//gmp_printf("%Zx * %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
-	mpz_clear(mpz_mA);
-	mpz_clear(mpz_mB);
-	mpz_clear(mpz_mC);
-
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
-	mpz_clear(mpz_mD);
-
-	//printf("modmul%d out\n", reglen_bit);
-}
-
-INSTRUCTION (le3_modexp4096) {
-	unsigned reglen_bit = 4096;
-
-	//printf("modexp%d in\n", reglen_bit);
-
-	e3extensions_set_extra_cycles(reglen_bit*reglen_bit);
-
-	orreg_t mD = PARAM0;
-	orreg_t mA = PARAM1;
-	orreg_t mB = PARAM2;
-	orreg_t mC = PARAM3;
-	
-	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
-	mpz_init(mpz_mD);
-	mpz_init(mpz_mA);
-	mpz_init(mpz_mB);
-	mpz_init(mpz_mC);
-
-	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
-	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
-	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
-
-	//gmp_printf("%Zx ^ %Zx mod %Zx\n", mpz_mA, mpz_mB, mpz_mC);
-	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_mC);
-	//gmp_printf("%Zx ^ %Zx mod %Zx = %Zx\n", mpz_mA, mpz_mB, mpz_mC, mpz_mD);
-	mpz_clear(mpz_mA);
-	mpz_clear(mpz_mB);
-	mpz_clear(mpz_mC);
-	
-	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
-	mpz_clear(mpz_mD);
-
-	//printf("modexp%d out\n", reglen_bit);
-}
-
-INSTRUCTION (le3_gfun4096) {
-	unsigned reglen_bit = 4096;
-
-	//printf("gfun%d in\n", reglen_bit);
-
-	e3extensions_set_extra_cycles(reglen_bit*reglen_bit);
-
-	orreg_t mD = PARAM0;
-	orreg_t mA = PARAM1;
-	orreg_t mB = PARAM2;
-	orreg_t mC = PARAM3;
-	
-	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_mC;
-	mpz_init(mpz_mD);
-	mpz_init(mpz_mA);
-	mpz_init(mpz_mB);
-	mpz_init(mpz_mC);
-	
-	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
-	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
-	e3extensions_set_mpz(mpz_mC, mC, reglen_bit);
-
-	if (!csLoaded) loadCryptosystem();
-
-	mpz_t ox, n, n2;
-	mpz_init(ox);
-	mpz_init(n);
-	mpz_init(n2);
-	mpz_set(n2, mpz_mC);
-	mpz_root(n, n2, 2);
-
-	//gmp_printf("P3: %Zd\tN: %Zd\n", mpz_mC, n2);
-	mpz_powm(ox, mpz_mA, fkf, n2);
-
-	//gmp_printf("FKF: %Zd\nXP1: %Zd\nXP2: %Zd\nP3: %Zd\tN: %Zd\n", fkf, xp1, xp2, mpz_mC, n2);
-	mpz_powm(ox, mpz_mA, fkf, n2);
-	//gmp_printf("X: %Zd\nY: %Zd\nox: %Zd\n", mpz_mA, mpz_mB, ox);
-
-	if ((mpz_cmp(ox, xp1) < 0) || (mpz_cmp(xp2, ox) < 0))
-		mpz_set(mpz_mD, zero);
-	else
-		mpz_set(mpz_mD, mpz_mB);
-	reencrypt(mpz_mD);
-
-	mpz_clear(n);
-	mpz_clear(n2);
-	mpz_clear(ox);
 
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
-	mpz_clear(mpz_mC);
-	
-	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
-
-	//printf("gfun%d out\n", reglen_bit);
 }
-
-INSTRUCTION (le3_gcd4096) {
-	unsigned reglen_bit = 4096;
-
-	//printf("gcd%d in\n", reglen_bit);
-
-	e3extensions_set_extra_cycles(4*reglen_bit); // worst case
-
-	orreg_t mD = PARAM0;
-	orreg_t mA = PARAM1;
-	orreg_t mB = PARAM2;
-	
-	mpz_t mpz_mD, mpz_mA, mpz_mB;
-	mpz_init(mpz_mD);
-	mpz_init(mpz_mA);
-	mpz_init(mpz_mB);
-	
-	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
-	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
-
-	mpz_gcd(mpz_mD, mpz_mA, mpz_mB);
-	mpz_clear(mpz_mA);
-	mpz_clear(mpz_mB);
-	
-	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
-	mpz_clear(mpz_mD);
-
-	//printf("gcd%d out\n", reglen_bit);
-}
-
-INSTRUCTION (le3_inv4096) {
-	unsigned reglen_bit = 4096;
-
-	//printf("inv%d in\n", reglen_bit);
-
-	e3extensions_set_extra_cycles(4*reglen_bit); // worst case
-
-	orreg_t mD = PARAM0;
-	orreg_t mA = PARAM1;
-	orreg_t mB = PARAM2;
-	
-	mpz_t mpz_mD, mpz_mA, mpz_mB;
-	mpz_init(mpz_mD);
-	mpz_init(mpz_mA);
-	mpz_init(mpz_mB);
-	
-	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
-	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
-
-	mpz_invert(mpz_mD, mpz_mA, mpz_mB);
-	mpz_clear(mpz_mA);
-	mpz_clear(mpz_mB);
-	
-	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
-	mpz_clear(mpz_mD);
-
-	//printf("inv%d in\n", reglen_bit);
-}
-
-INSTRUCTION (le3_mter4096) {
-	unsigned reglen_bit = 4096;
-
-	//printf("mter%d in\n", reglen_bit);
-
-	orreg_t mD = PARAM0;
-	orreg_t rA = PARAM1;
-	orreg_t uimm = PARAM2;
-
-	int offset = E3_NUMWORDS - uimm - 1;
-	cpu_state.e3reg[mD][offset] = rA;
-
-	//printf("cpu_state %u\tmD %u\t = rA %u\t[%u] :: %u\n", cpu_state.e3reg[mD][127], mD, rA, uimm, offset);
-	//printf("mter%d out\n", reglen_bit);
-}
-
-INSTRUCTION (le3_mfer4096) {
-	unsigned reglen_bit = 4096;
-
-	//printf("mfer%d in\n", reglen_bit);
-
-	orreg_t rD;
-	orreg_t mA = PARAM1;
-	orreg_t uimm = PARAM2;
-
-	int offset = E3_NUMWORDS - uimm - 1;
-	rD = cpu_state.e3reg[mA][offset];
-
-//	printf("rD %u\t = mA %u\t[%u] :: %u\n", rD, mA, uimm, offset);
-	SET_PARAM0(rD);
-
-	//printf("mfer%d out\n", reglen_bit);
-}
-*/
 
 /** MoMA end **/
 

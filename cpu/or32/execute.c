@@ -570,9 +570,17 @@ sbuf_load ()
 
 /** MoMA begin **/
 static unsigned
+e3extensions_filter_imm(unsigned imm, unsigned reglen_bits)
+{
+	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
+	unsigned filtered_imm = imm & (reglen_words - 1);
+	return filtered_imm;
+}
+
+static unsigned
 e3extensions_get_effective_decrypted_size()
 {
-	unsigned ctrl0_d = (ctrl0 >> 8) & 0x7;
+	unsigned ctrl0_d = (cpu_state.sprs[SPR_E3_CTRL0] >> 8) & 0x7;
 	unsigned eds = 32 << ctrl0_d;
 	return eds;
 }
@@ -581,7 +589,7 @@ static unsigned
 e3extensions_get_sign(orreg_t mA, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
-	unsigned sign = cpu_state.e3reg[mD][reglen_words-1] >> 31;
+	unsigned sign = cpu_state.e3reg[mA][reglen_words-1] >> 31;
 	return sign;
 }
 
@@ -633,8 +641,8 @@ e3extensions_extend_sign(unsigned mD, unsigned sign, unsigned reglen_bits)
 	{
 		for (int s = E3_STDWORDSIZE - 1; s >= 0; s--)
 		{
-			if ((cpu_state.e3reg[mA][i] >> s) && 0x1) return;
-			else cpu_state.e3reg[mA][i] = cpu_state.e3reg[mA][i] || (sign << s);
+			if ((cpu_state.e3reg[mD][i] >> s) && 0x1) return;
+			else cpu_state.e3reg[mD][i] = cpu_state.e3reg[mD][i] || (sign << s);
 		}
 	}
 }

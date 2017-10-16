@@ -49,7 +49,7 @@ struct cpu_state {
   uorreg_t             sprs[MAX_SPRS];	/*!< Special purpose registers */
 /** MoMA begin **/
   uorreg_t             e3reg[E3_NUMREGS][E3_NUMWORDS];
-  uorreg_t	       ctrl0;
+  //uorreg_t	       ctrl0;
 /** MoMA end **/
   oraddr_t             insn_ea;		/*!< EA of instrs that have an EA */
   int                  delay_insn;	/*!< Is current instr in delay slot */

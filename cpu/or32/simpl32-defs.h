@@ -32,7 +32,6 @@
 /* Package includes */
 #include "abstract.h"
 
-
 extern void l_invalid PARAMS((struct iqueue_entry *));
 extern void l_sfne PARAMS((struct iqueue_entry *));
 extern void l_bf PARAMS((struct iqueue_entry *));
@@ -112,6 +111,16 @@ extern void l_none PARAMS((struct iqueue_entry *));
 
 /** MoMA begin **/
 extern void l_mod PARAMS((struct iqueue_entry *));
+
+// Secure Computation
+
+
+// Other
+extern void le_mfer PARAMS((struct iqueue_entry *));
+extern void le_mter PARAMS((struct iqueue_entry *));
+//extern void le_mfspr PARAMS((struct iqueue_entry *));
+//extern void le_mtspr PARAMS((struct iqueue_entry *));
+
 
 // Acceleration
 extern void le_add PARAMS((struct iqueue_entry *));
