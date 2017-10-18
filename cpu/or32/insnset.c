@@ -1274,6 +1274,7 @@ INSTRUCTION (le_mfer) {
 	uimm = e3extensions_filter_imm(uimm, reglen_bit);
 
 	rD = cpu_state.e3reg[mA][uimm];
+	//printf("le.mfer\trD: %u\tmA: %u\timm: %u\n", rD, mA, uimm);
 	SET_PARAM0(rD);
 }
 
@@ -1283,7 +1284,9 @@ INSTRUCTION (le_mter) {
 	orreg_t mD = PARAM0;
 	orreg_t rA = PARAM1;
 	orreg_t uimm = PARAM2;
+	//if (rA || uimm) printf("Ble.mter\tmD: %u\trA: %x\timm: %u\n", mD, rA, uimm);
 	uimm = e3extensions_filter_imm(uimm, reglen_bit);
+	//if (rA || uimm) printf("Ale.mter\tmD: %u\trA: %u\timm: %u\n", mD, rA, uimm);
 
 	cpu_state.e3reg[mD][uimm] = rA;
 }
@@ -1297,6 +1300,8 @@ INSTRUCTION (le_add) {
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
 
+	//printf("mD: %u\tmA: %u\tmB: %u\n", mD, mA, mB);
+
 	mpz_t mpz_mD, mpz_mA, mpz_mB;
 	mpz_init(mpz_mD);
 	mpz_init(mpz_mA);
@@ -1305,6 +1310,7 @@ INSTRUCTION (le_add) {
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_add(mpz_mD, mpz_mA, mpz_mB);
+	gmp_printf("le.add -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 
