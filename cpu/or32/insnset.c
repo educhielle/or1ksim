@@ -1274,7 +1274,7 @@ INSTRUCTION (le_mfer) {
 	uimm = e3extensions_filter_imm(uimm, reglen_bit);
 
 	rD = cpu_state.e3reg[mA][uimm];
-	//printf("le.mfer\trD: %u\tmA: %u\timm: %u\n", rD, mA, uimm);
+
 	SET_PARAM0(rD);
 }
 
@@ -1284,9 +1284,8 @@ INSTRUCTION (le_mter) {
 	orreg_t mD = PARAM0;
 	orreg_t rA = PARAM1;
 	orreg_t uimm = PARAM2;
-	//if (rA || uimm) printf("Ble.mter\tmD: %u\trA: %x\timm: %u\n", mD, rA, uimm);
+
 	uimm = e3extensions_filter_imm(uimm, reglen_bit);
-	//if (rA || uimm) printf("Ale.mter\tmD: %u\trA: %u\timm: %u\n", mD, rA, uimm);
 
 	cpu_state.e3reg[mD][uimm] = rA;
 }
@@ -1300,8 +1299,6 @@ INSTRUCTION (le_add) {
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
 
-	//printf("mD: %u\tmA: %u\tmB: %u\n", mD, mA, mB);
-
 	mpz_t mpz_mD, mpz_mA, mpz_mB;
 	mpz_init(mpz_mD);
 	mpz_init(mpz_mA);
@@ -1310,7 +1307,7 @@ INSTRUCTION (le_add) {
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_add(mpz_mD, mpz_mA, mpz_mB);
-	gmp_printf("le.add -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
+	//gmp_printf("le.add -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 
@@ -1347,8 +1344,8 @@ INSTRUCTION (le_not) {
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
-
-	mpz_t mpz_mD, mpz_mA;
+	e3extensions_not(mD, mA, reglen_bit);
+	/*mpz_t mpz_mD, mpz_mA;
 	mpz_init(mpz_mD);
 	mpz_init(mpz_mA);
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
@@ -1357,7 +1354,7 @@ INSTRUCTION (le_not) {
 	mpz_clear(mpz_mA);
 
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
-	mpz_clear(mpz_mD);
+	mpz_clear(mpz_mD);*/
 }
 
 INSTRUCTION (le_or) {
@@ -1435,14 +1432,14 @@ INSTRUCTION (le_divs) {
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-	if (signA) e3extensions_twos_complement(mpz_mA);
-	if (signB) e3extensions_twos_complement(mpz_mB);
+	if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
+	if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
 	mpz_tdiv_q(mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	if (signA ^ signB) e3extensions_twos_complement(mpz_mD);
+	if (signA ^ signB) e3extensions_twos_complement(mpz_mD, reglen_bit);
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
@@ -1533,14 +1530,14 @@ INSTRUCTION (le_pows) {
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 	mpz_mul_2exp(mpz_limit, mpz_limit, reglen_bit);
 
-	if (signA) e3extensions_twos_complement(mpz_mA);
+	if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
 
 	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_limit);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 	mpz_clear(mpz_limit);
 
-	if (signA) e3extensions_twos_complement(mpz_mD);
+	if (signA) e3extensions_twos_complement(mpz_mD, reglen_bit);
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
@@ -1638,7 +1635,7 @@ INSTRUCTION (le_ges) {
 
 	unsigned signA = e3extensions_get_sign(mA, reglen_bit);
 	unsigned signB = e3extensions_get_sign(mB, reglen_bit);
-
+	//printf("le_ges -> signA: %u\tsignB: %u\treglen_bit: %u\n", signA, signB, reglen_bit);
 	mpz_t mpz_mD;
 	mpz_init(mpz_mD);
 	int signDiff = signB - signA;
@@ -1651,12 +1648,13 @@ INSTRUCTION (le_ges) {
 		mpz_init(mpz_mB);
 		e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 		e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+		
+		if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
+		if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
-		if (signA) e3extensions_twos_complement(mpz_mA);
-		if (signB) e3extensions_twos_complement(mpz_mB);
-
-		unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) <= 0);
+		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) <= 0) : (mpz_cmp(mpz_mA, mpz_mB) >= 0));
 		mpz_set_ui(mpz_mD, cmp);
+		//gmp_printf("le_ges -> mpz_mD: %Zx\tmpz_mA: %Zx\tmpz_mB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		mpz_clear(mpz_mA);
 		mpz_clear(mpz_mB);
 	}
@@ -1681,10 +1679,11 @@ INSTRUCTION (le_geu) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) >= 0);
 	mpz_set_ui(mpz_mD, cmp);
-	mpz_clear(mpz_mA);
-	mpz_clear(mpz_mB);
 
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
 	mpz_clear(mpz_mD);
 }
 
@@ -1711,11 +1710,12 @@ INSTRUCTION (le_gts) {
 		e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 		e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-		if (signA) e3extensions_twos_complement(mpz_mA);
-		if (signB) e3extensions_twos_complement(mpz_mB);
+		if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
+		if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
-		unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) < 0);
+		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) < 0) : (mpz_cmp(mpz_mA, mpz_mB) > 0));
 		mpz_set_ui(mpz_mD, cmp);
+
 		mpz_clear(mpz_mA);
 		mpz_clear(mpz_mB);
 	}
@@ -1785,10 +1785,10 @@ INSTRUCTION (le_les) {
 		e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 		e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-		if (signA) e3extensions_twos_complement(mpz_mA);
-		if (signB) e3extensions_twos_complement(mpz_mB);
+		if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
+		if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
-		unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) >= 0);
+		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) >= 0) : (mpz_cmp(mpz_mA, mpz_mB) <= 0));
 		mpz_set_ui(mpz_mD, cmp);
 		mpz_clear(mpz_mA);
 		mpz_clear(mpz_mB);
@@ -1844,10 +1844,10 @@ INSTRUCTION (le_lts) {
 		e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 		e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-		if (signA) e3extensions_twos_complement(mpz_mA);
-		if (signB) e3extensions_twos_complement(mpz_mB);
+		if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
+		if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
-		unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) > 0);
+		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) > 0) : (mpz_cmp(mpz_mA, mpz_mB) < 0));
 		mpz_set_ui(mpz_mD, cmp);
 		mpz_clear(mpz_mA);
 		mpz_clear(mpz_mB);
@@ -1962,14 +1962,14 @@ INSTRUCTION (le_mods) {
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-	if (signA) e3extensions_twos_complement(mpz_mA);
-	if (signB) e3extensions_twos_complement(mpz_mB);
+	if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
+	if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
 	mpz_mod(mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	if (signA) e3extensions_twos_complement(mpz_mD);
+	if (signA) e3extensions_twos_complement(mpz_mD, reglen_bit);
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
@@ -2013,14 +2013,14 @@ INSTRUCTION (le_macs) {
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-	if (signA) e3extensions_twos_complement(mpz_mA);
-	if (signB) e3extensions_twos_complement(mpz_mB);
+	if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
+	if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
 	mpz_addmul(mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	if (signA ^ signB) e3extensions_twos_complement(mpz_mD);
+	if (signA ^ signB) e3extensions_twos_complement(mpz_mD, reglen_bit);
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
@@ -2064,14 +2064,14 @@ INSTRUCTION (le_msbs) {
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-	if (signA) e3extensions_twos_complement(mpz_mA);
-	if (signB) e3extensions_twos_complement(mpz_mB);
+	if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
+	if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
 	mpz_submul(mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	if (signA ^ signB) e3extensions_twos_complement(mpz_mD);
+	if (signA ^ signB) e3extensions_twos_complement(mpz_mD, reglen_bit);
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
@@ -2115,15 +2115,15 @@ INSTRUCTION (le_muls) {
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-	if (signA) e3extensions_twos_complement(mpz_mA);
-	if (signB) e3extensions_twos_complement(mpz_mB);
+	if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
+	if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
 	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
 
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
-	if (signA ^ signB) e3extensions_twos_complement(mpz_mD);
+	if (signA ^ signB) e3extensions_twos_complement(mpz_mD, reglen_bit);
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
@@ -2238,7 +2238,7 @@ INSTRUCTION (le_sra) {
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-	if (signA) e3extensions_twos_complement(mpz_mA);
+	if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
 
 	unsigned shift = mpz_get_ui(mpz_mB);
 	mpz_tdiv_q_2exp(mpz_mD, mpz_mA, shift);

@@ -585,6 +585,32 @@ e3extensions_get_effective_decrypted_size()
 	return eds;
 }
 
+static void
+e3extensions_not(orreg_t mD, orreg_t mA, unsigned reglen_bits)
+{
+	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
+	for (int i = 0; i < reglen_words; i++)
+	{
+		cpu_state.e3reg[mD][i] = ~cpu_state.e3reg[mA][i];
+	}
+}
+
+static void
+e3extensions_mpz_not(mpz_t* mpz_mD, unsigned reglen_bits)
+{
+	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
+	mpz_t mpz_inverter, baseWord;
+	unsigned ones = 0xffffffff;
+	mpz_init_set_ui(mpz_inverter, 0);
+	mpz_init_set_str(baseWord, E3_STDHEXBASE, 16);
+	for (int i = reglen_words - 1; i >= 0; i--)
+	{
+		mpz_mul(mpz_inverter, mpz_inverter, baseWord);
+		mpz_add_ui(mpz_inverter, mpz_inverter, ones);
+	}
+	mpz_xor(mpz_mD, mpz_mD, mpz_inverter);
+}
+
 static unsigned
 e3extensions_get_sign(orreg_t mA, unsigned reglen_bits)
 {
@@ -594,9 +620,9 @@ e3extensions_get_sign(orreg_t mA, unsigned reglen_bits)
 }
 
 static void
-e3extensions_twos_complement(mpz_t* mpz_mD)
+e3extensions_twos_complement(mpz_t* mpz_mD, unsigned reglen_bits)
 {
-	mpz_com(mpz_mD, mpz_mD);
+	e3extensions_mpz_not(mpz_mD, reglen_bits);
 	mpz_add_ui(mpz_mD, mpz_mD, 1);
 }
 
@@ -609,7 +635,7 @@ e3extensions_ff1(unsigned mA, unsigned reglen_bits)
 	{
 		for (int s = 0; s < E3_STDWORDSIZE; s++)
 		{
-			if ((cpu_state.e3reg[mA][i] >> s) && 0x1) return (i * E3_STDWORDSIZE + s);
+			if ((cpu_state.e3reg[mA][i] >> s) & 0x1) return (i * E3_STDWORDSIZE + s + 1);
 		}
 	}
 
@@ -625,7 +651,7 @@ e3extensions_fl1(unsigned mA, unsigned reglen_bits)
 	{
 		for (int s = E3_STDWORDSIZE - 1; s >= 0; s--)
 		{
-			if ((cpu_state.e3reg[mA][i] >> s) && 0x1) return (i * E3_STDWORDSIZE + s);
+			if ((cpu_state.e3reg[mA][i] >> s) & 0x1) return (i * E3_STDWORDSIZE + s + 1);
 		}
 	}
 
