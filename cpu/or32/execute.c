@@ -667,8 +667,8 @@ e3extensions_extend_sign(unsigned mD, unsigned sign, unsigned reglen_bits)
 	{
 		for (int s = E3_STDWORDSIZE - 1; s >= 0; s--)
 		{
-			if ((cpu_state.e3reg[mD][i] >> s) && 0x1) return;
-			else cpu_state.e3reg[mD][i] = cpu_state.e3reg[mD][i] || (sign << s);
+			if ((cpu_state.e3reg[mD][i] >> s) & 0x1) return;
+			else cpu_state.e3reg[mD][i] = cpu_state.e3reg[mD][i] | (sign << s);
 		}
 	}
 }

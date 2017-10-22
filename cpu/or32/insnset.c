@@ -1962,14 +1962,26 @@ INSTRUCTION (le_mods) {
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
 
-	if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
-	if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
+	if (mpz_cmp_ui(mpz_mB, 0))
+	{
+		if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
+		if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
-	mpz_mod(mpz_mD, mpz_mA, mpz_mB);
-	mpz_clear(mpz_mA);
-	mpz_clear(mpz_mB);
+		mpz_mod(mpz_mD, mpz_mA, mpz_mB);
+		mpz_clear(mpz_mA);
+		mpz_clear(mpz_mB);
 
-	if (signA) e3extensions_twos_complement(mpz_mD, reglen_bit);
+		if (signA) e3extensions_twos_complement(mpz_mD, reglen_bit);
+	}
+	else
+	{
+		gmp_randstate_t state;
+		unsigned seed = rand();
+		gmp_randinit_default(state);
+		gmp_randseed_ui(state, seed);
+		mpz_urandomb(mpz_mD, state, reglen_bit);
+	}
+
 	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
@@ -2012,16 +2024,21 @@ INSTRUCTION (le_macs) {
 	mpz_init(mpz_mB);
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mD, mD, reglen_bit);
 
 	if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
 	if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
-	mpz_addmul(mpz_mD, mpz_mA, mpz_mB);
+	//mpz_addmul(mpz_mD, mpz_mA, mpz_mB);
+	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
+
+	if (signA ^ signB) e3extensions_twos_complement(mpz_mA, reglen_bit);
+
+	mpz_add(mpz_mD, mpz_mD, mpz_mA);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
-
-	if (signA ^ signB) e3extensions_twos_complement(mpz_mD, reglen_bit);
-	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
@@ -2038,8 +2055,10 @@ INSTRUCTION (le_macu) {
 	mpz_init(mpz_mB);
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mD, mD, reglen_bit);
 
-	mpz_addmul(mpz_mD, mpz_mA, mpz_mB);
+	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
+	mpz_add(mpz_mD, mpz_mD, mpz_mA);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -2063,16 +2082,20 @@ INSTRUCTION (le_msbs) {
 	mpz_init(mpz_mB);
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mD, mD, reglen_bit);
 
 	if (signA) e3extensions_twos_complement(mpz_mA, reglen_bit);
 	if (signB) e3extensions_twos_complement(mpz_mB, reglen_bit);
 
-	mpz_submul(mpz_mD, mpz_mA, mpz_mB);
+	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
+
+	if (!(signA ^ signB)) e3extensions_twos_complement(mpz_mA, reglen_bit);
+
+	mpz_add(mpz_mD, mpz_mD, mpz_mA);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
-
-	if (signA ^ signB) e3extensions_twos_complement(mpz_mD, reglen_bit);
-	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
@@ -2089,12 +2112,15 @@ INSTRUCTION (le_msbu) {
 	mpz_init(mpz_mB);
 	e3extensions_set_mpz(mpz_mA, mA, reglen_bit);
 	e3extensions_set_mpz(mpz_mB, mB, reglen_bit);
+	e3extensions_set_mpz(mpz_mD, mD, reglen_bit);
 
-	mpz_submul(mpz_mD, mpz_mA, mpz_mB);
+	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
+	e3extensions_twos_complement(mpz_mA, reglen_bit);
+	mpz_add(mpz_mD, mpz_mD, mpz_mA);
+	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
+
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
-
-	e3extensions_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
 
@@ -2177,11 +2203,13 @@ INSTRUCTION (le_ne) {
 
 INSTRUCTION (le_rand) {
 	unsigned reglen_bit = e3extensions_get_effective_decrypted_size();
-
+	printf("rand\n");
 	orreg_t mD = PARAM0;
 
 	mpz_t mpz_mD;
 	mpz_init(mpz_mD);
+
+	printf("here\n");
 
 	gmp_randstate_t state;
 	unsigned seed = rand();
