@@ -86,8 +86,11 @@
 #define E3_STDWORDSIZE		32
 #define E3_STDHEXBASE		"100000000"
 #define E3_NUMWORDS		E3_REGLEN / E3_STDWORDSIZE
+#define E3_MILLER_RABIN_IT	64
+#define E3_MAX_KEY_SIZE		E3_REGLEN / 2
 
 #define SPR_E3_CTRL0	(SPRGROUP_E3 + 0)
+#define SPR_E3_STAT	(SPRGROUP_E3 + 1)
 /** MoMA end **/
 
 /* System control and status group */

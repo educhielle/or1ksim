@@ -116,10 +116,20 @@ extern void l_mod PARAMS((struct iqueue_entry *));
 
 
 // Other
+extern void le_enc PARAMS((struct iqueue_entry *));
+extern void le_mafdtspr PARAMS((struct iqueue_entry *));
+extern void le_mabdtspr PARAMS((struct iqueue_entry *));
+extern void le_mabfdtspr PARAMS((struct iqueue_entry *));
+extern void le_maefspr PARAMS((struct iqueue_entry *));
+extern void le_mfftsk PARAMS((struct iqueue_entry *));
+extern void le_mfbtsk PARAMS((struct iqueue_entry *));
 extern void le_mfer PARAMS((struct iqueue_entry *));
 extern void le_mter PARAMS((struct iqueue_entry *));
-//extern void le_mfspr PARAMS((struct iqueue_entry *));
-//extern void le_mtspr PARAMS((struct iqueue_entry *));
+extern void le_mfspr PARAMS((struct iqueue_entry *));
+extern void le_mtspr PARAMS((struct iqueue_entry *));
+extern void le_sfbusy PARAMS((struct iqueue_entry *));
+extern void le_lw PARAMS((struct iqueue_entry *));
+extern void le_sw PARAMS((struct iqueue_entry *));
 
 
 // Acceleration

@@ -101,7 +101,8 @@ static int  sbuf_count             = 0;
 static int  sbuf_buf[MAX_SBUF_LEN] = { 0 };
 
 /** MoMA begin **/
-static int e3extensions_cycles = 0;
+static int e3_cycles = 0;
+static unsigned e3_is_boot_key_generated = 0;
 /** MoMA end **/
 
 static int sbuf_prev_cycles = 0;
@@ -570,23 +571,112 @@ sbuf_load ()
 
 /** MoMA begin **/
 static unsigned
-e3extensions_filter_imm(unsigned imm, unsigned reglen_bits)
+e3_filter_imm(unsigned imm)
 {
-	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
-	unsigned filtered_imm = imm & (reglen_words - 1);
+	unsigned filtered_imm = imm & (E3_NUMWORDS - 1);
 	return filtered_imm;
 }
 
 static unsigned
-e3extensions_get_effective_decrypted_size()
+e3_get_effective_decrypted_size()
 {
 	unsigned ctrl0_d = (cpu_state.sprs[SPR_E3_CTRL0] >> 8) & 0x7;
 	unsigned eds = 32 << ctrl0_d;
 	return eds;
 }
 
+static unsigned
+e3_millerRabin(mpz_t p, unsigned iteration)
+{
+	mpz_t mod;
+	mpz_init(mod);
+	mpz_mod_ui(mod, p, 2);
+	if ((mpz_cmp_ui(p, 2) < 0) || ((mpz_cmp_ui(p, 2)) && (mpz_cmp_ui(mod, 0) == 0)))
+	{
+		mpz_clear(mod);
+		return 0;
+	}
+	
+	mpz_t s;
+	mpz_init(s);
+	mpz_sub_ui(s, p, 1);
+	mpz_mod_ui(mod, s, 2);
+	while (mpz_cmp_ui(mod, 0) == 0)
+	{
+		mpz_tdiv_q_ui(s, s, 2);
+		mpz_mod_ui(mod, s, 2);
+	}
+
+	gmp_randstate_t state;
+	gmp_randinit_default(state);
+	gmp_randseed_ui(state, rand());
+
+	mpz_t pm1, temp;
+	mpz_init(pm1);
+	mpz_init(temp);
+	for (unsigned i = 0; i < iteration; i++)
+	{
+		mpz_sub_ui(pm1, p, 1);
+		mpz_urandomm(mod, state, p);
+		mpz_mod(mod, mod, pm1);
+		mpz_add_ui(mod, mod, 1);
+		mpz_set(temp, s);
+
+		mpz_powm(mod, mod, temp, p);
+		while (mpz_cmp(temp, pm1) && mpz_cmp_ui(mod, 1) && mpz_cmp(mod, pm1))
+		{
+			mpz_powm_ui(mod, mod, 2, p);
+			mpz_mul_ui(temp, temp, 2);
+		}
+
+		mpz_mod_ui(temp, temp, 2);
+		if (mpz_cmp(mod, pm1) && (mpz_cmp_ui(temp, 0) == 0))
+		{
+			mpz_clear(mod);
+			mpz_clear(s);
+			mpz_clear(pm1);
+			mpz_clear(temp);
+			return 0;
+		}
+    	}
+
+	mpz_clear(mod);
+	mpz_clear(s);
+	mpz_clear(pm1);
+	mpz_clear(temp);
+	return 1;
+}
+
 static void
-e3extensions_not(orreg_t mD, orreg_t mA, unsigned reglen_bits)
+e3_prime(mpz_t* p, unsigned n)
+{
+	gmp_randstate_t state;
+	gmp_randinit_default(state);
+	gmp_randseed_ui(state, rand());
+
+	do
+	{
+		mpz_urandomb(p, state, n);
+	} while (!millerRabin(p, E3_MILLER_RABIN_IT));
+}
+
+
+static void
+e3_generate_boot_key()
+{
+	mpz_t mpz_bpri, mpz_bpub, mpz_bmod;
+	// e3_prime(mpz_bpri, E3_MAX_KEY_SIZE);
+}
+
+static void e3_get_boot_key(mpz_t* boot_key)
+{
+	if (!e3_is_boot_key_generated) e3_generate_boot_key();
+
+	//...
+}
+
+static void
+e3_not(orreg_t mD, orreg_t mA, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
 	for (int i = 0; i < reglen_words; i++)
@@ -596,7 +686,7 @@ e3extensions_not(orreg_t mD, orreg_t mA, unsigned reglen_bits)
 }
 
 static void
-e3extensions_mpz_not(mpz_t* mpz_mD, unsigned reglen_bits)
+e3_mpz_not(mpz_t* mpz_mD, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
 	mpz_t mpz_inverter, baseWord;
@@ -612,7 +702,7 @@ e3extensions_mpz_not(mpz_t* mpz_mD, unsigned reglen_bits)
 }
 
 static unsigned
-e3extensions_get_sign(orreg_t mA, unsigned reglen_bits)
+e3_get_sign(orreg_t mA, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
 	unsigned sign = cpu_state.e3reg[mA][reglen_words-1] >> 31;
@@ -620,14 +710,14 @@ e3extensions_get_sign(orreg_t mA, unsigned reglen_bits)
 }
 
 static void
-e3extensions_twos_complement(mpz_t* mpz_mD, unsigned reglen_bits)
+e3_twos_complement(mpz_t* mpz_mD, unsigned reglen_bits)
 {
-	e3extensions_mpz_not(mpz_mD, reglen_bits);
+	e3_mpz_not(mpz_mD, reglen_bits);
 	mpz_add_ui(mpz_mD, mpz_mD, 1);
 }
 
 static unsigned
-e3extensions_ff1(unsigned mA, unsigned reglen_bits)
+e3_ff1(unsigned mA, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
 
@@ -643,7 +733,7 @@ e3extensions_ff1(unsigned mA, unsigned reglen_bits)
 }
 
 static unsigned
-e3extensions_fl1(unsigned mA, unsigned reglen_bits)
+e3_fl1(unsigned mA, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
 
@@ -659,7 +749,23 @@ e3extensions_fl1(unsigned mA, unsigned reglen_bits)
 }
 
 static void
-e3extensions_extend_sign(unsigned mD, unsigned sign, unsigned reglen_bits)
+e3_rand(unsigned mD, unsigned reglen_bits)
+{
+	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
+	unsigned partsize_bit = 8;
+	unsigned mask = (1 << partsize_bit) - 1;
+
+	for (int i = reglen_words - 1; i >= 0; i--)
+	{
+		for (int j = 0; j < E3_STDWORDSIZE; j += partsize_bit)
+		{
+			cpu_state.e3reg[mD][i] = (cpu_state.e3reg[mD][i] << partsize_bit) | (rand() & mask);
+		}
+	}
+}
+
+static void
+e3_extend_sign(unsigned mD, unsigned sign, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
 
@@ -674,13 +780,13 @@ e3extensions_extend_sign(unsigned mD, unsigned sign, unsigned reglen_bits)
 }
 
 static void
-e3extensions_set_extra_cycles (int extra_cycles)
+e3_set_extra_cycles (int extra_cycles)
 {
-	e3extensions_cycles = extra_cycles;
+	e3_cycles = extra_cycles;
 }
 
 static void
-e3extensions_set_mpz (mpz_t* mpz_mA, orreg_t mA, unsigned reglen_bits)
+e3_set_mpz (mpz_t* mpz_mA, orreg_t mA, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
 	//int offset = E3_NUMWORDS - reglen_words;
@@ -698,7 +804,7 @@ e3extensions_set_mpz (mpz_t* mpz_mA, orreg_t mA, unsigned reglen_bits)
 }
 
 static void
-e3extensions_set_e3reg (orreg_t mD, mpz_t mpz_mD, unsigned reglen_bits)
+e3_set_e3reg (orreg_t mD, mpz_t mpz_mD, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
 	//int offset = E3_NUMWORDS - reglen_words;
@@ -1262,8 +1368,8 @@ exec_main ()
 /** backup begin **
       runtime.sim.cycles        += runtime.sim.mem_cycles;
 ** backup end **/
-	runtime.sim.cycles        += runtime.sim.mem_cycles + e3extensions_cycles;
-	e3extensions_cycles = 0;
+	runtime.sim.cycles        += runtime.sim.mem_cycles + e3_cycles;
+	e3_cycles = 0;
 /** MoMA end **/
       scheduler.job_queue->time -= runtime.sim.cycles - time_start;
 

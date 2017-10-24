@@ -49,6 +49,16 @@ struct cpu_state {
   uorreg_t             sprs[MAX_SPRS];	/*!< Special purpose registers */
 /** MoMA begin **/
   uorreg_t             e3reg[E3_NUMREGS][E3_NUMWORDS];
+  uorreg_t             fpri[E3_NUMWORDS];
+  uorreg_t             fpub[E3_NUMWORDS];
+  uorreg_t             fmod[E3_NUMWORDS];
+  uorreg_t             bpri[E3_NUMWORDS];
+  uorreg_t             bpub[E3_NUMWORDS];
+  uorreg_t             bmod[E3_NUMWORDS];
+  uorreg_t             pri[E3_NUMWORDS];
+  uorreg_t             pub[E3_NUMWORDS];
+  uorreg_t             mod[E3_NUMWORDS];
+  uorreg_t             sstat;
   //uorreg_t	       ctrl0;
 /** MoMA end **/
   oraddr_t             insn_ea;		/*!< EA of instrs that have an EA */
