@@ -716,6 +716,26 @@ e3_twos_complement(mpz_t* mpz_mD, unsigned reglen_bits)
 	mpz_add_ui(mpz_mD, mpz_mD, 1);
 }
 
+static void
+e3_copy(unsigned vD[], unsigned vA[], unsigned reglen_bits)
+{
+	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
+
+	for (int i = 0; i < reglen_words; i++)
+	{
+		vD[i] = vA[i];
+	}
+}
+
+static void
+e3_clear(unsigned vD[])
+{
+	for (int i = 0; i < E3_NUMWORDS; i++)
+	{
+		vD[i] = 0;
+	}
+}
+
 static unsigned
 e3_ff1(unsigned mA, unsigned reglen_bits)
 {

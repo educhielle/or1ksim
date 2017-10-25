@@ -129,7 +129,9 @@ extern void le_mfspr PARAMS((struct iqueue_entry *));
 extern void le_mtspr PARAMS((struct iqueue_entry *));
 extern void le_sfbusy PARAMS((struct iqueue_entry *));
 extern void le_lw PARAMS((struct iqueue_entry *));
+extern void le_lw4096 PARAMS((struct iqueue_entry *));
 extern void le_sw PARAMS((struct iqueue_entry *));
+extern void le_sw4096 PARAMS((struct iqueue_entry *));
 
 
 // Acceleration

@@ -352,10 +352,14 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
    EF (le_mtspr), 0, it_unknown},
   {"le.sfbusy", "",     "11 0xE  ----- ----- ---- --10--0-1111",
    EF (le_sfbusy), 0, it_unknown},
-  {"le.lw", "K(P),rA",  "11 0xE  PPPPP AAAAA KKKK KK10K-0-1101",
+  {"le.lw", "P,rA,K",   "11 0xE  PPPPP AAAAA KKKK KK10K-0-1101",
    EF (le_lw), 0, it_unknown},
-  {"le.sw", "rD,K(Q)",  "11 0xE  DDDDD QQQQQ KKKK KK10K-0-0101",
+  {"le.lw4096","P,rA,K","11 0xE  PPPPP AAAAA KKKK KK10K-0-1110",
+   EF (le_lw4096), 0, it_unknown},
+  {"le.sw", "rD,Q,K",   "11 0xE  DDDDD QQQQQ KKKK KK10K-0-0101",
    EF (le_sw), 0, it_unknown},
+  {"le.sw4096","rD,Q,K","11 0xE  DDDDD QQQQQ KKKK KK10K-0-0110",
+   EF (le_sw4096), 0, it_unknown},
 
 // Acceleration
   {"le.add", "P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-00--0-0000",

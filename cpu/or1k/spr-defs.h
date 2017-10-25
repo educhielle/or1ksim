@@ -82,12 +82,25 @@
 
 /** MoMA begin **/
 #define E3_NUMREGS		16
+#define E3_ESR_NUMREGS		16
 #define E3_REGLEN		4096
 #define E3_STDWORDSIZE		32
 #define E3_STDHEXBASE		"100000000"
 #define E3_NUMWORDS		E3_REGLEN / E3_STDWORDSIZE
 #define E3_MILLER_RABIN_IT	64
 #define E3_MAX_KEY_SIZE		E3_REGLEN / 2
+
+// ESR indexes
+#define E3_MOD			0x0
+#define E3_PUB			0x1
+#define E3_SSTAT		0x2
+#define E3_PRI			0x3
+#define E3_FMOD			0x8
+#define E3_FPUB			0x9
+#define E3_FPRI			0xB
+#define E3_BMOD			0xC
+#define E3_BPUB			0xD
+#define E3_BPRI			0xF
 
 #define SPR_E3_CTRL0	(SPRGROUP_E3 + 0)
 #define SPR_E3_STAT	(SPRGROUP_E3 + 1)

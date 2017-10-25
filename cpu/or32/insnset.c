@@ -208,6 +208,7 @@ INSTRUCTION (l_swa) {
   cpu_state.loadlock_active = 0;
 }
 INSTRUCTION (l_sw) {
+	printf("l.sw P0: %x\t P1: %x\n", PARAM0, PARAM1);
   int old_cyc = 0;
   if (config.cpu.sbuf_len) old_cyc = runtime.sim.mem_cycles;
   set_mem32(PARAM0, PARAM1, &breakpoint);
@@ -1291,13 +1292,15 @@ INSTRUCTION (le_maefspr) {
 }
 
 INSTRUCTION (le_mfftsk) {
-	unsigned reglen_bit = e3_get_effective_decrypted_size();
-
+	e3_copy(cpu_state.e3esr[E3_PUB], cpu_state.e3esr[E3_FPUB], E3_NUMWORDS);
+	e3_copy(cpu_state.e3esr[E3_PRI], cpu_state.e3esr[E3_FPRI], E3_NUMWORDS);
+	e3_copy(cpu_state.e3esr[E3_MOD], cpu_state.e3esr[E3_FMOD], E3_NUMWORDS);
 }
 
 INSTRUCTION (le_mfbtsk) {
-	unsigned reglen_bit = e3_get_effective_decrypted_size();
-
+	e3_copy(cpu_state.e3esr[E3_PUB], cpu_state.e3esr[E3_BPUB], E3_NUMWORDS);
+	e3_copy(cpu_state.e3esr[E3_PRI], cpu_state.e3esr[E3_BPRI], E3_NUMWORDS);
+	e3_copy(cpu_state.e3esr[E3_MOD], cpu_state.e3esr[E3_BMOD], E3_NUMWORDS);
 }
 
 INSTRUCTION (le_mfer) {
@@ -1328,11 +1331,28 @@ INSTRUCTION (le_mter) {
 INSTRUCTION (le_mfspr) {
 	unsigned reglen_bit = e3_get_effective_decrypted_size();
 
+	orreg_t mD = PARAM0;
+	orreg_t esrA = PARAM1;
+
+	if (esrA == E3_MOD || esrA == E3_PUB
+	 || esrA == E3_FMOD || esrA == E3_FPUB
+	 || esrA == E3_BMOD || esrA == E3_BPUB)
+		e3_copy(cpu_state.e3reg[mD], cpu_state.e3esr[esrA], reglen_bit);
 }
 
 INSTRUCTION (le_mtspr) {
 	unsigned reglen_bit = e3_get_effective_decrypted_size();
 
+	orreg_t esrD = PARAM0;
+	orreg_t mA = PARAM1;
+
+	if (esrD == E3_MOD)
+		e3_copy(cpu_state.e3esr[esrD],cpu_state.e3reg[mA], reglen_bit);
+	else if (esrD == E3_PUB)
+	{
+		e3_clear(cpu_state.e3esr[E3_PRI]);
+		e3_copy(cpu_state.e3esr[esrD],cpu_state.e3reg[mA], reglen_bit);
+	}
 }
 
 INSTRUCTION (le_sfbusy) {
@@ -1345,13 +1365,69 @@ INSTRUCTION (le_sfbusy) {
 }
 
 INSTRUCTION (le_lw) {
-	unsigned reglen_bit = e3_get_effective_decrypted_size();
+	uint32_t val;
+	if (config.cpu.sbuf_len) sbuf_load ();
+	
+	orreg_t mD = PARAM0;
+	orreg_t rA = PARAM1;
+	orreg_t uimm = PARAM2;
 
+	val = eval_mem32(rA, &breakpoint);
+	/* If eval operand produced exception don't set anything. JPB changed to
+	trigger on breakpoint, as well as except_pending (seemed to be a bug). */
+	if (!(except_pending || breakpoint))
+		cpu_state.e3reg[mD][uimm] = val;
+}
+
+INSTRUCTION (le_lw4096) {
+	uint32_t val;
+	if (config.cpu.sbuf_len) sbuf_load ();
+	
+	orreg_t mD = PARAM0;
+	orreg_t rA = PARAM1;
+	orreg_t uimm = PARAM2;
+	rA += (E3_NUMWORDS-uimm-1) << 2;
+
+	val = eval_mem32(rA, &breakpoint);
+	/* If eval operand produced exception don't set anything. JPB changed to
+	trigger on breakpoint, as well as except_pending (seemed to be a bug). */
+	if (!(except_pending || breakpoint))
+		cpu_state.e3reg[mD][uimm] = val;
 }
 
 INSTRUCTION (le_sw) {
-	unsigned reglen_bit = e3_get_effective_decrypted_size();
+	int old_cyc = 0;
+	if (config.cpu.sbuf_len) old_cyc = runtime.sim.mem_cycles;
+	
+	orreg_t rD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t uimm = PARAM2;
 
+	set_mem32(rD, cpu_state.e3reg[mA][uimm], &breakpoint);
+	if (config.cpu.sbuf_len)
+	{
+		int t = runtime.sim.mem_cycles;
+		runtime.sim.mem_cycles = old_cyc;
+		sbuf_store (t - old_cyc);
+	}
+}
+
+INSTRUCTION (le_sw4096) {
+	int old_cyc = 0;
+	if (config.cpu.sbuf_len) old_cyc = runtime.sim.mem_cycles;
+	
+	orreg_t rD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t uimm = PARAM2;
+	rD += (E3_NUMWORDS-uimm-1) << 2;
+
+	set_mem32(rD, cpu_state.e3reg[mA][uimm], &breakpoint);
+	if (config.cpu.sbuf_len)
+	{
+		int t = runtime.sim.mem_cycles;
+		runtime.sim.mem_cycles = old_cyc;
+		sbuf_store (t - old_cyc);
+	}
 }
 
 //Acceleration
