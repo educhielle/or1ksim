@@ -208,7 +208,6 @@ INSTRUCTION (l_swa) {
   cpu_state.loadlock_active = 0;
 }
 INSTRUCTION (l_sw) {
-	printf("l.sw P0: %x\t P1: %x\n", PARAM0, PARAM1);
   int old_cyc = 0;
   if (config.cpu.sbuf_len) old_cyc = runtime.sim.mem_cycles;
   set_mem32(PARAM0, PARAM1, &breakpoint);
@@ -1269,6 +1268,17 @@ INSTRUCTION (l_mod) {
 INSTRUCTION (le_enc) {
 	unsigned reglen_bit = e3_get_effective_decrypted_size();
 
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+
+	mpz_t mpz_mD, mpz_mA;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	e3_set_mpz(mpz_mA, mA, reglen_bit);
+
+	e3_encrypt(mpz_mD, mpz_mA, reglen_bit);
+
+	e3_set_e3reg(mD, mpz_mD, reglen_bit);	
 }
 
 INSTRUCTION (le_mafdtspr) {
@@ -1292,12 +1302,16 @@ INSTRUCTION (le_maefspr) {
 }
 
 INSTRUCTION (le_mfftsk) {
+	e3_clear(cpu_state.e3esr[E3_SSTAT]);
 	e3_copy(cpu_state.e3esr[E3_PUB], cpu_state.e3esr[E3_FPUB], E3_NUMWORDS);
 	e3_copy(cpu_state.e3esr[E3_PRI], cpu_state.e3esr[E3_FPRI], E3_NUMWORDS);
 	e3_copy(cpu_state.e3esr[E3_MOD], cpu_state.e3esr[E3_FMOD], E3_NUMWORDS);
 }
 
 INSTRUCTION (le_mfbtsk) {
+	if (!e3_is_boot_key_generated) e3_generate_boot_key();
+
+	e3_clear(cpu_state.e3esr[E3_SSTAT]);
 	e3_copy(cpu_state.e3esr[E3_PUB], cpu_state.e3esr[E3_BPUB], E3_NUMWORDS);
 	e3_copy(cpu_state.e3esr[E3_PRI], cpu_state.e3esr[E3_BPRI], E3_NUMWORDS);
 	e3_copy(cpu_state.e3esr[E3_MOD], cpu_state.e3esr[E3_BMOD], E3_NUMWORDS);
@@ -1351,13 +1365,12 @@ INSTRUCTION (le_mtspr) {
 	else if (esrD == E3_PUB)
 	{
 		e3_clear(cpu_state.e3esr[E3_PRI]);
+		e3_clear(cpu_state.e3esr[E3_SSTAT]);
 		e3_copy(cpu_state.e3esr[esrD],cpu_state.e3reg[mA], reglen_bit);
 	}
 }
 
 INSTRUCTION (le_sfbusy) {
-	unsigned reglen_bit = e3_get_effective_decrypted_size();
-
 	if (cpu_state.sprs[SPR_E3_STAT] & 0x1)
 		cpu_state.sprs[SPR_SR] |= SPR_SR_F;
 	else
