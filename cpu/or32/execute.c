@@ -103,6 +103,7 @@ static int  sbuf_buf[MAX_SBUF_LEN] = { 0 };
 /** MoMA begin **/
 static int e3_cycles = 0;
 static unsigned e3_is_boot_key_generated = 0;
+static unsigned e3_is_fused_key_generated = 0;
 /** MoMA end **/
 
 static int sbuf_prev_cycles = 0;
@@ -571,17 +572,95 @@ sbuf_load ()
 
 /** MoMA begin **/
 
-// Transfer data
+
+// Assist
 
 static void
-e3_set_esr (orreg_t mD, mpz_t mpz_mD, unsigned reglen_bits)
+e3_extend_sign(unsigned mD, unsigned sign, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
 
+	for (int i = reglen_words - 1; i >= 0; i--)
+	{
+		for (int s = E3_STDWORDSIZE - 1; s >= 0; s--)
+		{
+			if ((cpu_state.e3reg[mD][i] >> s) & 0x1) return;
+			else cpu_state.e3reg[mD][i] = cpu_state.e3reg[mD][i] | (sign << s);
+		}
+	}
+}
+
+static unsigned
+e3_filter_imm(unsigned imm)
+{
+	unsigned filtered_imm = imm & (E3_NUMWORDS - 1);
+	return filtered_imm;
+}
+
+static unsigned
+e3_get_effective_decrypted_size()
+{
+	unsigned ctrl0_d = (cpu_state.sprs[SPR_E3_CTRL0] >> 8) & 0x7;
+	unsigned eds = 32 << ctrl0_d;
+	return eds;
+}
+
+static unsigned
+e3_get_effective_encrypted_size()
+{
+	unsigned ctrl0_e = (cpu_state.sprs[SPR_E3_CTRL0] >> 16) & 0x3;
+	unsigned ees = 512 << ctrl0_e;
+	return ees;
+}
+
+static unsigned
+e3_get_sign(orreg_t mA, unsigned reglen_bits)
+{
+	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
+	unsigned sign = cpu_state.e3reg[mA][reglen_words-1] >> 31;
+	return sign;
+}
+
+static void
+e3_mpz_mask(mpz_t* mask, unsigned bitlen)
+{
+	mpz_init_set_ui(mask, 1);
+	mpz_mul_2exp(mask, mask, bitlen);
+	mpz_sub_ui(mask, mask, 1);
+}
+
+static void
+e3_mpz_not(mpz_t* mpz_mD, unsigned reglen_bits)
+{
+	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
+	mpz_t mpz_inverter, baseWord;
+	unsigned ones = 0xffffffff;
+	mpz_init_set_ui(mpz_inverter, 0);
+	mpz_init_set_str(baseWord, E3_STDHEXBASE, 16);
+	for (int i = reglen_words - 1; i >= 0; i--)
+	{
+		mpz_mul(mpz_inverter, mpz_inverter, baseWord);
+		mpz_add_ui(mpz_inverter, mpz_inverter, ones);
+	}
+	mpz_xor(mpz_mD, mpz_mD, mpz_inverter);
+}
+
+static void
+e3_twos_complement(mpz_t* mpz_mD, unsigned reglen_bits)
+{
+	e3_mpz_not(mpz_mD, reglen_bits);
+	mpz_add_ui(mpz_mD, mpz_mD, 1);
+}
+
+// Transfer data
+
+static void
+e3_set_esr (orreg_t mD, mpz_t mpz_mD)
+{
 	mpz_t baseWord;
 	mpz_init_set_str(baseWord, E3_STDHEXBASE, 16);
 
-	for (int i = 0; i < reglen_words; i++)
+	for (int i = 0; i < E3_NUMWORDS; i++)
 	{
 		cpu_state.e3esr[mD][i] = (uorreg_t) mpz_get_ui(mpz_mD);
 		mpz_tdiv_q(mpz_mD, mpz_mD, baseWord);
@@ -604,19 +683,20 @@ e3_set_e3reg (orreg_t mD, mpz_t mpz_mD, unsigned reglen_bits)
 }
 
 static void
-e3_set_mpz_p (mpz_t* mpz_mD, unsigned vA[], unsigned lsb_pos, unsigned msb_pos)
+e3_set_mpz_p (mpz_t* mpz_mD, unsigned *vA, unsigned lsb_pos, unsigned msb_pos)
 {
 	unsigned lsw_pos = lsb_pos / E3_STDWORDSIZE;
 	unsigned msw_pos = msb_pos / E3_STDWORDSIZE;
-
+	//printf("msw: %u\tlsw: %u\n", msw_pos, lsw_pos);
 	mpz_t baseWord;
 	mpz_init_set_str(baseWord, E3_STDHEXBASE, 16);
 
 	mpz_init(mpz_mD);
 
-	for (int i = msw_pos - 1; i >= lsw_pos; i--)
+	for (unsigned i = msw_pos - 1; (i+1) > lsw_pos; i--)
 	{
 		mpz_mul(mpz_mD, mpz_mD, baseWord);
+		//printf("vA[%d] = %u\n", i, *(vA+i));
 		mpz_add_ui(mpz_mD, mpz_mD, vA[i]);
 	}
 }
@@ -643,8 +723,9 @@ e3_copy(unsigned vD[], unsigned vA[], unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
 
-	for (int i = 0; i < reglen_words; i++)
+	for (unsigned i = 0; i < reglen_words; i++)
 	{
+		//printf("vA[%u] = %u\n", i, vA[i]);
 		vD[i] = vA[i];
 	}
 }
@@ -743,15 +824,57 @@ static void
 e3_prime(mpz_t* p, unsigned n)
 {
 	mpz_t r;
-	do
-	{
-		e3_randomp2(r, n);
-		mpz_nextprime(p, r);
-	} while (mpz_probab_prime_p(p, E3_MILLER_RABIN_IT) != 2);
+	//do
+	//{
+	e3_randomp2(r, n);
+	mpz_nextprime(p, r);
+	//printf("rabin: %x\n", mpz_probab_prime_p(p, E3_MILLER_RABIN_IT));
+	//} while (mpz_probab_prime_p(p, E3_MILLER_RABIN_IT) != 2);
 	//} while (!millerRabin(p, E3_MILLER_RABIN_IT));
 	mpz_clear(r);
 }
 
+static void
+e3_generate_fused_key()
+{
+	mpz_t p, q, n, phi, e, d, gcd, k;
+	mpz_init(p);
+	mpz_init(q);
+	mpz_init(n);
+	mpz_init(phi);
+	mpz_init(e);
+	mpz_init(d);
+	mpz_init(gcd);
+	mpz_init(k);
+
+	mpz_set_ui(e, (2<<16)-1);
+	mpz_set_str(p, E3_FUSED_P, 16);
+	mpz_set_str(q, E3_FUSED_Q, 16);
+
+	mpz_mul(n, p, q);
+	
+	mpz_sub_ui(p, p, 1);
+	mpz_sub_ui(q, q, 1);
+	mpz_mul(phi, p, q);
+
+	mpz_gcdext(gcd, d, k, e, phi);
+
+
+	e3_set_esr(E3_FPUB, e);
+	e3_set_esr(E3_FPRI, d);
+	e3_set_esr(E3_FMOD, n);
+
+	mpz_clear(p);
+	mpz_clear(q);
+	mpz_clear(n);
+	mpz_clear(phi);
+	mpz_clear(e);
+	mpz_clear(d);
+	mpz_clear(gcd);
+	mpz_clear(k);
+
+	e3_is_fused_key_generated = 1;
+}
 
 static void
 e3_generate_boot_key()
@@ -771,6 +894,7 @@ e3_generate_boot_key()
 	{
 		e3_prime(p, E3_MAX_RSA_KEY_SIZE/2);
 		e3_prime(q, E3_MAX_RSA_KEY_SIZE/2);
+		//gmp_printf("BOOT KEYS\n\tp: %Zx\nq: %Zx\n", p, q);
 		mpz_mul(n, p, q);
 	
 		mpz_sub_ui(p, p, 1);
@@ -781,9 +905,9 @@ e3_generate_boot_key()
 	} while (mpz_cmp_ui(gcd, 1));
 	if (mpz_cmp_si(d, 0) < 0) mpz_add(d, d, phi);
 
-	e3_set_esr(E3_BPUB, e, E3_REGLEN);
-	e3_set_esr(E3_BPRI, d, E3_REGLEN);
-	e3_set_esr(E3_BMOD, n, E3_REGLEN);
+	e3_set_esr(E3_BPUB, e);
+	e3_set_esr(E3_BPRI, d);
+	e3_set_esr(E3_BMOD, n);
 
 	mpz_clear(p);
 	mpz_clear(q);
@@ -793,6 +917,8 @@ e3_generate_boot_key()
 	mpz_clear(d);
 	mpz_clear(gcd);
 	mpz_clear(k);
+
+	e3_is_boot_key_generated = 1;
 }
 
 // Encryption/Decryption
@@ -835,22 +961,13 @@ e3_encryptPaillier(mpz_t* c, mpz_t m)
 }
 
 static void
-e3_decryptRSA(mpz_t* c, mpz_t* pad, mpz_t m, unsigned pub_index, unsigned mod_index)
+e3_decryptRSA(mpz_t* m, mpz_t c, unsigned pri_index, unsigned mod_index)
 {
 	mpz_t d, n;
 	e3_set_mpz_p(d, cpu_state.e3esr[pri_index], 0, E3_REGLEN);
 	e3_set_mpz_p(n, cpu_state.e3esr[mod_index], 0, E3_REGLEN);
 
-	//decrypt	
-	mpz_powm(c, m, d, n);
-
-	// remove padding
-	
-
-	if (pad != NULL)
-	{
-		
-	}
+	mpz_powm(m, c, d, n);
 
 	mpz_clear(d);
 	mpz_clear(n);
@@ -860,9 +977,9 @@ static void
 e3_encryptRSA(mpz_t* c, mpz_t m, unsigned pub_index, unsigned mod_index)
 {
 	mpz_t e, n;
-	e3_set_mpz_p(e, cpu_state.e3esr[pub_index], 0, E3_REGLEN);
-	e3_set_mpz_p(n, cpu_state.e3esr[mod_index], 0, E3_REGLEN);
-	
+	e3_set_mpz_p(e, &cpu_state.e3esr[pub_index], 0, E3_REGLEN);
+	e3_set_mpz_p(n, &cpu_state.e3esr[mod_index], 0, E3_REGLEN);
+
 	mpz_powm(c, m, e, n);
 
 	mpz_clear(e);
@@ -870,80 +987,71 @@ e3_encryptRSA(mpz_t* c, mpz_t m, unsigned pub_index, unsigned mod_index)
 }
 
 static void
-e3_decrypt(mpz_t* mpz_mD, mpz_t mpz_mA)
+e3_decrypt_fused(mpz_t* m, mpz_t chi, mpz_t clo)
 {
-	if (e3_isRSA()) e3_decryptRSA(mpz_mD, NULL, mpz_mA, E3_PUB, E3_MOD);
-	else if (e3_isPaillier()) e3_decryptPaillier(mpz_mD, mpz_mA);
+	if (!e3_is_fused_key_generated) e3_generate_fused_key();
+
+	mpz_t mhi, mlo, mask;
+	e3_mpz_mask(mask, E3_REGLEN/2);
+
+	e3_decryptRSA(mhi, chi, E3_FPRI, E3_FMOD);
+	e3_decryptRSA(mlo, clo, E3_FPRI, E3_FMOD);
+
+	mpz_and(mhi, mhi, mask);
+	mpz_mul_2exp(mhi, mhi, E3_REGLEN/2);
+	mpz_and(mlo, mlo, mask);
+	mpz_ior(m, mhi, mlo);
+
+	mpz_clear(mask);
+	mpz_clear(mhi);
+	mpz_clear(mlo);
 }
 
 static void
-e3_encrypt(mpz_t* mpz_mD, mpz_t mpz_mA)
+e3_decrypt_boot(mpz_t* m, mpz_t chi, mpz_t clo)
 {
+	if (!e3_is_boot_key_generated) e3_generate_boot_key();
+
+	mpz_t mhi, mlo, mask;
+	e3_mpz_mask(mask, E3_REGLEN/2);
+
+	e3_decryptRSA(mhi, chi, E3_BPRI, E3_BMOD);
+	e3_decryptRSA(mlo, clo, E3_BPRI, E3_BMOD);
+
+	mpz_and(mhi, mhi, mask);
+	mpz_mul_2exp(mhi, mhi, E3_REGLEN/2);
+	mpz_and(mlo, mlo, mask);
+	mpz_ior(m, mhi, mlo);
+
+	mpz_clear(mask);
+	mpz_clear(mhi);
+	mpz_clear(mlo);
+}
+
+static void
+e3_decrypt(mpz_t* mpz_mD, mpz_t mpz_mA, unsigned reglen_bit)
+{
+	if (e3_isRSA()) e3_decryptRSA(mpz_mD, mpz_mA, E3_PRI, E3_MOD);
+	else if (e3_isPaillier()) e3_decryptPaillier(mpz_mD, mpz_mA);
+
+	mpz_t mask;
+	e3_mpz_mask(mask, reglen_bit);
+	mpz_and(mpz_mD, mpz_mD, mask);
+}
+
+static void
+e3_encrypt(mpz_t* mpz_mD, mpz_t mpz_mA, unsigned reglen_bit)
+{
+	mpz_t mask;
+	e3_mpz_mask(mask, reglen_bit);
+	mpz_and(mpz_mA, mpz_mA, mask);
+
 	if (e3_isRSA()) e3_encryptRSA(mpz_mD, mpz_mA, E3_PUB, E3_MOD);
 	else if (e3_isPaillier()) e3_encryptPaillier(mpz_mD, mpz_mA);
-}
 
-// Assist
-
-static void
-e3_extend_sign(unsigned mD, unsigned sign, unsigned reglen_bits)
-{
-	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
-
-	for (int i = reglen_words - 1; i >= 0; i--)
-	{
-		for (int s = E3_STDWORDSIZE - 1; s >= 0; s--)
-		{
-			if ((cpu_state.e3reg[mD][i] >> s) & 0x1) return;
-			else cpu_state.e3reg[mD][i] = cpu_state.e3reg[mD][i] | (sign << s);
-		}
-	}
-}
-
-static unsigned
-e3_filter_imm(unsigned imm)
-{
-	unsigned filtered_imm = imm & (E3_NUMWORDS - 1);
-	return filtered_imm;
-}
-
-static unsigned
-e3_get_effective_decrypted_size()
-{
-	unsigned ctrl0_d = (cpu_state.sprs[SPR_E3_CTRL0] >> 8) & 0x7;
-	unsigned eds = 32 << ctrl0_d;
-	return eds;
-}
-
-static unsigned
-e3_get_sign(orreg_t mA, unsigned reglen_bits)
-{
-	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
-	unsigned sign = cpu_state.e3reg[mA][reglen_words-1] >> 31;
-	return sign;
-}
-
-static void
-e3_mpz_not(mpz_t* mpz_mD, unsigned reglen_bits)
-{
-	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
-	mpz_t mpz_inverter, baseWord;
-	unsigned ones = 0xffffffff;
-	mpz_init_set_ui(mpz_inverter, 0);
-	mpz_init_set_str(baseWord, E3_STDHEXBASE, 16);
-	for (int i = reglen_words - 1; i >= 0; i--)
-	{
-		mpz_mul(mpz_inverter, mpz_inverter, baseWord);
-		mpz_add_ui(mpz_inverter, mpz_inverter, ones);
-	}
-	mpz_xor(mpz_mD, mpz_mD, mpz_inverter);
-}
-
-static void
-e3_twos_complement(mpz_t* mpz_mD, unsigned reglen_bits)
-{
-	e3_mpz_not(mpz_mD, reglen_bits);
-	mpz_add_ui(mpz_mD, mpz_mD, 1);
+	mpz_t c;
+	mpz_init(c);
+	e3_encryptRSA(c, mpz_mD, E3_PRI, E3_MOD);
 }
 
 // Instruction

@@ -327,12 +327,18 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
   {"l.mod", "rD,rA,rB", "01 0xE  DDDDD AAAAA BBBB B--- ---- 0x6",
    EF (l_mod), 0, it_unknown},
 
-// Other 
+// Secure Computation
+  {"le.eadd", "P,Q,R",  "11 0xE  PPPPP QQQQQ RRRR R-00-0100000",
+   EF (le_eadd), 0, it_unknown},
+
+// Other
   {"le.enc", "P,Q",     "11 0xE  PPPPP QQQQQ ---- --10-01-1110",
    EF (le_enc), 0, it_unknown},
-  {"le.mafdtspr","P,Q", "11 0xE  PPPPP QQQQQ ---- --10-01-1100",
+  {"le.gbk","",         "11 0xE  ----- ----- ---- --10-01-0110",
+   EF (le_gbk), 0, it_unknown},
+  {"le.mafdtspr","P,Q,R","11 0xE  PPPPP QQQQQ RRRR R-10-01-1100",
    EF (le_mafdtspr), 0, it_unknown},
-  {"le.mabdtspr","P,Q", "11 0xE  PPPPP QQQQQ ---- --10-01-1011",
+  {"le.mabdtspr","P,Q,R","11 0xE  PPPPP QQQQQ RRRR R-10-01-1011",
    EF (le_mabdtspr), 0, it_unknown},
   {"le.mabfdtspr","P,Q","11 0xE  PPPPP QQQQQ ---- --10-01-1101",
    EF (le_mabfdtspr), 0, it_unknown},

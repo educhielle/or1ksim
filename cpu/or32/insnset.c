@@ -1263,10 +1263,45 @@ INSTRUCTION (l_mod) {
 
 // Secure Computation
 
+INSTRUCTION (le_eadd) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	mpz_add(mpz_mD, mpz_mA, mpz_mB);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_t c;
+	mpz_init(c);
+	e3_set_mpz(c, mD, ees);
+	e3_decrypt(c, c, eds);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
 // Other
 
 INSTRUCTION (le_enc) {
-	unsigned reglen_bit = e3_get_effective_decrypted_size();
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
@@ -1274,21 +1309,67 @@ INSTRUCTION (le_enc) {
 	mpz_t mpz_mD, mpz_mA;
 	mpz_init(mpz_mD);
 	mpz_init(mpz_mA);
-	e3_set_mpz(mpz_mA, mA, reglen_bit);
+	e3_set_mpz(mpz_mA, mA, eds);
 
-	e3_encrypt(mpz_mD, mpz_mA, reglen_bit);
+	e3_encrypt(mpz_mD, mpz_mA, eds);
 
-	e3_set_e3reg(mD, mpz_mD, reglen_bit);	
+	e3_set_e3reg(mD, mpz_mD, ees);	
+}
+
+INSTRUCTION (le_gbk) {
+	e3_generate_boot_key();
 }
 
 INSTRUCTION (le_mafdtspr) {
-	unsigned reglen_bit = e3_get_effective_decrypted_size();
+	unsigned reglen_bit = e3_get_effective_encrypted_size();
 
+	orreg_t esrD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	if (esrD == E3_PRI || esrD == E3_PUB || esrD == E3_MOD)
+	{
+		mpz_t mpz_esrD, mpz_mA, mpz_mB;
+		mpz_init(mpz_esrD);
+		mpz_init(mpz_mA);
+		mpz_init(mpz_mB);
+		e3_set_mpz(mpz_mA, mA, reglen_bit);
+		e3_set_mpz(mpz_mB, mB, reglen_bit);
+	
+		e3_decrypt_fused(mpz_esrD, mpz_mA, mpz_mB);
+
+		e3_set_esr(esrD, mpz_esrD);
+
+		mpz_clear(mpz_esrD);
+		mpz_clear(mpz_mA);
+		mpz_clear(mpz_mB);
+	}
 }
 
 INSTRUCTION (le_mabdtspr) {
-	unsigned reglen_bit = e3_get_effective_decrypted_size();
+	unsigned reglen_bit = e3_get_effective_encrypted_size();
 
+	orreg_t esrD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	if (esrD == E3_PRI || esrD == E3_PUB || esrD == E3_MOD)
+	{
+		mpz_t mpz_esrD, mpz_mA, mpz_mB;
+		mpz_init(mpz_esrD);
+		mpz_init(mpz_mA);
+		mpz_init(mpz_mB);
+		e3_set_mpz(mpz_mA, mA, reglen_bit);
+		e3_set_mpz(mpz_mB, mB, reglen_bit);
+	
+		e3_decrypt_boot(mpz_esrD, mpz_mA, mpz_mB);
+
+		e3_set_esr(esrD, mpz_esrD);
+
+		mpz_clear(mpz_esrD);
+		mpz_clear(mpz_mA);
+		mpz_clear(mpz_mB);
+	}
 }
 
 INSTRUCTION (le_mabfdtspr) {
@@ -1302,19 +1383,21 @@ INSTRUCTION (le_maefspr) {
 }
 
 INSTRUCTION (le_mfftsk) {
+	if (!e3_is_fused_key_generated) e3_generate_fused_key();
+
 	e3_clear(cpu_state.e3esr[E3_SSTAT]);
-	e3_copy(cpu_state.e3esr[E3_PUB], cpu_state.e3esr[E3_FPUB], E3_NUMWORDS);
-	e3_copy(cpu_state.e3esr[E3_PRI], cpu_state.e3esr[E3_FPRI], E3_NUMWORDS);
-	e3_copy(cpu_state.e3esr[E3_MOD], cpu_state.e3esr[E3_FMOD], E3_NUMWORDS);
+	e3_copy(cpu_state.e3esr[E3_PUB], cpu_state.e3esr[E3_FPUB], E3_REGLEN);
+	e3_copy(cpu_state.e3esr[E3_PRI], cpu_state.e3esr[E3_FPRI], E3_REGLEN);
+	e3_copy(cpu_state.e3esr[E3_MOD], cpu_state.e3esr[E3_FMOD], E3_REGLEN);
 }
 
 INSTRUCTION (le_mfbtsk) {
 	if (!e3_is_boot_key_generated) e3_generate_boot_key();
 
 	e3_clear(cpu_state.e3esr[E3_SSTAT]);
-	e3_copy(cpu_state.e3esr[E3_PUB], cpu_state.e3esr[E3_BPUB], E3_NUMWORDS);
-	e3_copy(cpu_state.e3esr[E3_PRI], cpu_state.e3esr[E3_BPRI], E3_NUMWORDS);
-	e3_copy(cpu_state.e3esr[E3_MOD], cpu_state.e3esr[E3_BMOD], E3_NUMWORDS);
+	e3_copy(cpu_state.e3esr[E3_PUB], cpu_state.e3esr[E3_BPUB], E3_REGLEN);
+	e3_copy(cpu_state.e3esr[E3_PRI], cpu_state.e3esr[E3_BPRI], E3_REGLEN);
+	e3_copy(cpu_state.e3esr[E3_MOD], cpu_state.e3esr[E3_BMOD], E3_REGLEN);
 }
 
 INSTRUCTION (le_mfer) {

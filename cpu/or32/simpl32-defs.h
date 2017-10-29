@@ -113,10 +113,11 @@ extern void l_none PARAMS((struct iqueue_entry *));
 extern void l_mod PARAMS((struct iqueue_entry *));
 
 // Secure Computation
-
+extern void le_eadd PARAMS((struct iqueue_entry *));
 
 // Other
 extern void le_enc PARAMS((struct iqueue_entry *));
+extern void le_gbk PARAMS((struct iqueue_entry *));
 extern void le_mafdtspr PARAMS((struct iqueue_entry *));
 extern void le_mabdtspr PARAMS((struct iqueue_entry *));
 extern void le_mabfdtspr PARAMS((struct iqueue_entry *));
