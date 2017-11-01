@@ -613,6 +613,14 @@ e3_get_effective_encrypted_size()
 	return ees;
 }
 
+static void
+e3_mpz_mask(mpz_t* mask, unsigned bitlen)
+{
+	mpz_init_set_ui(mask, 1);
+	mpz_mul_2exp(mask, mask, bitlen);
+	mpz_sub_ui(mask, mask, 1);
+}
+
 static unsigned
 e3_get_sign(orreg_t mA, unsigned reglen_bits)
 {
@@ -621,12 +629,17 @@ e3_get_sign(orreg_t mA, unsigned reglen_bits)
 	return sign;
 }
 
-static void
-e3_mpz_mask(mpz_t* mask, unsigned bitlen)
+static unsigned
+e3_get_sign_mpz(mpz_t mpz_mA, unsigned reglen_bits)
 {
+	mpz_t mask;
 	mpz_init_set_ui(mask, 1);
-	mpz_mul_2exp(mask, mask, bitlen);
-	mpz_sub_ui(mask, mask, 1);
+	mpz_mul_2exp(mask, mask, reglen_bits-1);
+	mpz_and(mask, mask, mpz_mA);
+	mpz_tdiv_q_2exp(mask, mask, reglen_bits-1);
+	unsigned sign = mpz_get_ui(mask);
+	mpz_clear(mask);
+	return sign;
 }
 
 static void
@@ -655,7 +668,7 @@ e3_twos_complement(mpz_t* mpz_mD, unsigned reglen_bits)
 // Transfer data
 
 static void
-e3_set_esr (orreg_t mD, mpz_t mpz_mD)
+e3_set_esr(orreg_t mD, mpz_t mpz_mD)
 {
 	mpz_t baseWord;
 	mpz_init_set_str(baseWord, E3_STDHEXBASE, 16);
@@ -668,7 +681,7 @@ e3_set_esr (orreg_t mD, mpz_t mpz_mD)
 }
 
 static void
-e3_set_e3reg (orreg_t mD, mpz_t mpz_mD, unsigned reglen_bits)
+e3_set_e3reg(orreg_t mD, mpz_t mpz_mD, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
 
@@ -683,7 +696,7 @@ e3_set_e3reg (orreg_t mD, mpz_t mpz_mD, unsigned reglen_bits)
 }
 
 static void
-e3_set_mpz_p (mpz_t* mpz_mD, unsigned *vA, unsigned lsb_pos, unsigned msb_pos)
+e3_set_mpz_p(mpz_t* mpz_mD, unsigned *vA, unsigned lsb_pos, unsigned msb_pos)
 {
 	unsigned lsw_pos = lsb_pos / E3_STDWORDSIZE;
 	unsigned msw_pos = msb_pos / E3_STDWORDSIZE;
@@ -1083,6 +1096,26 @@ e3_ff1(unsigned mA, unsigned reglen_bits)
 }
 
 static unsigned
+e3_ff1_mpz(mpz_t mpz_mA)
+{
+	if (mpz_cmp_ui(mpz_mA,0) == 0) return 0;
+
+	mpz_t mask, and;
+	mpz_init_set_ui(mask, 1);
+
+	unsigned pos = 0;
+	do
+	{
+		mpz_and(and, mask, mpz_mA);
+		mpz_tdiv_q_2exp(mpz_mA, mpz_mA, 1);
+		pos++;
+	} while (mpz_cmp_ui(mpz_mA, 0) && mpz_cmp_ui(and, 1));
+
+	return pos;
+}
+
+
+static unsigned
 e3_fl1(unsigned mA, unsigned reglen_bits)
 {
 	unsigned reglen_words = reglen_bits / E3_STDWORDSIZE;
@@ -1096,6 +1129,33 @@ e3_fl1(unsigned mA, unsigned reglen_bits)
 	}
 
 	return 0;
+}
+
+static unsigned
+e3_fl1_mpz(mpz_t mpz_mA)
+{
+	unsigned pos = 0;
+	while (mpz_cmp_ui(mpz_mA, 0))
+	{
+		mpz_tdiv_q_2exp(mpz_mA, mpz_mA, 1);
+		pos++;
+	}
+
+	return pos;
+}
+
+static void
+e3_extend_sign_mpz(mpz_t* mpz_mD, unsigned sign, unsigned reglen_bits)
+{
+	if (sign)
+	{
+		mpz_t mask, masklo;
+		e3_mpz_mask(mask, reglen_bits);
+		unsigned fl1 = e3_fl1_mpz(mpz_mD);
+		e3_mpz_mask(masklo, fl1);
+		mpz_sub(mask, mask, masklo);
+		mpz_xor(mpz_mD, mpz_mD, mask);
+	}
 }
 
 static void

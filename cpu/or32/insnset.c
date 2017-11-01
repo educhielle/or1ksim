@@ -1277,20 +1277,1220 @@ INSTRUCTION (le_eadd) {
 	mpz_init(mpz_mB);
 	e3_set_mpz(mpz_mA, mA, ees);
 	e3_set_mpz(mpz_mB, mB, ees);
-
 	e3_decrypt(mpz_mA, mpz_mA, eds);
 	e3_decrypt(mpz_mB, mpz_mB, eds);
 
 	mpz_add(mpz_mD, mpz_mA, mpz_mB);
 
 	e3_encrypt(mpz_mD, mpz_mD, eds);
-
 	e3_set_e3reg(mD, mpz_mD, ees);
 
-	mpz_t c;
-	mpz_init(c);
-	e3_set_mpz(c, mD, ees);
-	e3_decrypt(c, c, eds);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_eand) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	mpz_and(mpz_mD, mpz_mA, mpz_mB);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mD);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+}
+
+INSTRUCTION (le_enot) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+
+	mpz_t mpz_mD;
+	mpz_init(mpz_mD);
+	e3_set_mpz(mpz_mD, mD, ees);
+	e3_decrypt(mpz_mD, mpz_mD, eds);
+
+	e3_mpz_not(mpz_mD, eds);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_eor) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	mpz_ior(mpz_mD, mpz_mA, mpz_mB);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_ecmov) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD;
+	mpz_init(mpz_mD);
+	e3_set_mpz(mpz_mD, mD, ees);
+	e3_decrypt(mpz_mD, mpz_mD, eds);
+
+	if (mpz_cmp_ui(mpz_mD, 0) != 0)
+	{
+		e3_set_mpz(mpz_mD, mA, ees);
+		e3_decrypt(mpz_mD, mpz_mD, eds); // remove when reencrypt
+	}
+	else
+	{
+		e3_set_mpz(mpz_mD, mB, ees);
+		e3_decrypt(mpz_mD, mpz_mD, eds); // remove when reencrypt
+	}
+
+	e3_encrypt(mpz_mD, mpz_mD, eds); // replace by reencrypt
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_edec) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+
+	mpz_t mpz_mD;
+	mpz_init(mpz_mD);
+	e3_set_mpz(mpz_mD, mD, ees);
+	e3_decrypt(mpz_mD, mpz_mD, eds);
+
+	mpz_sub_ui(mpz_mD, mpz_mD, 1);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_edivs) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+	
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mB;
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	if (mpz_cmp_ui(mpz_mB, 0))
+	{
+		mpz_t mpz_mD, mpz_mA;
+		mpz_init(mpz_mD);
+		mpz_init(mpz_mA);
+		e3_set_mpz(mpz_mA, mA, ees);
+		e3_decrypt(mpz_mB, mpz_mB, eds);
+		unsigned signA = e3_get_sign_mpz(mpz_mA, eds);
+		unsigned signB = e3_get_sign_mpz(mpz_mB, eds);
+
+		if (signA) e3_twos_complement(mpz_mA, eds);
+		if (signB) e3_twos_complement(mpz_mB, eds);
+		mpz_tdiv_q(mpz_mD, mpz_mA, mpz_mB);
+		if (signA ^ signB) e3_twos_complement(mpz_mD, eds);
+
+		e3_encrypt(mpz_mD, mpz_mD, eds);
+		e3_set_e3reg(mD, mpz_mD, ees);
+
+		mpz_clear(mpz_mA);
+		mpz_clear(mpz_mD);
+	}
+	else
+	{
+		e3_rand(mD, ees);
+	}
+	mpz_clear(mpz_mB);
+}
+
+INSTRUCTION (le_edivu) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mB;
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	if (mpz_cmp_ui(mpz_mB, 0))
+	{
+		mpz_t mpz_mD, mpz_mA, mpz_mB;
+		mpz_init(mpz_mD);
+		mpz_init(mpz_mA);
+		e3_set_mpz(mpz_mA, mA, ees);
+		e3_decrypt(mpz_mA, mpz_mA, eds);
+
+		mpz_tdiv_q(mpz_mD, mpz_mA, mpz_mB);
+
+		e3_encrypt(mpz_mD, mpz_mD, eds);
+		e3_set_e3reg(mD, mpz_mD, ees);
+
+		mpz_clear(mpz_mA);
+		mpz_clear(mpz_mD);
+	}
+	else
+	{
+		e3_rand(mD, ees);
+	}
+	mpz_clear(mpz_mB);
+}
+
+INSTRUCTION (le_eeq) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) == 0);
+	mpz_set_ui(mpz_mD, cmp);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_exor) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	mpz_xor(mpz_mD, mpz_mA, mpz_mB);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_epows) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_limit;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init_set_ui(mpz_limit, 1);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	mpz_mul_2exp(mpz_limit, mpz_limit, eds);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+	unsigned signA = e3_get_sign_mpz(mpz_mA, eds);
+
+	if (signA) e3_twos_complement(mpz_mA, eds);
+	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_limit);
+	if (signA) e3_twos_complement(mpz_mD, eds);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+	mpz_clear(mpz_limit);
+}
+
+INSTRUCTION (le_epowu) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mpz_limit;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init_set_ui(mpz_limit, 1);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	mpz_mul_2exp(mpz_limit, mpz_limit, eds);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_limit);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+	mpz_clear(mpz_limit);
+}
+
+INSTRUCTION (le_eff1) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	
+	mpz_t mpz_mD, mpz_mA;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+
+	unsigned pos = e3_ff1_mpz(mpz_mA);
+	mpz_set_ui(mpz_mD, pos);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mD);	
+}
+
+INSTRUCTION (le_efl1) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	
+	mpz_t mpz_mD, mpz_mA;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+
+	unsigned pos = e3_fl1_mpz(mpz_mA);
+	mpz_set_ui(mpz_mD, pos);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mD);	
+}
+
+INSTRUCTION (le_eges) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	unsigned signA = e3_get_sign_mpz(mpz_mA, eds);
+	unsigned signB = e3_get_sign_mpz(mpz_mB, eds);
+
+	int signDiff = signB - signA;
+	if (signDiff > 0) mpz_init_set_ui(mpz_mD, 1);
+	else if (signDiff < 0) mpz_init_set_ui(mpz_mD, 0);
+	else
+	{	
+		if (signA) e3_twos_complement(mpz_mA, eds);
+		if (signB) e3_twos_complement(mpz_mB, eds);
+		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) <= 0) : (mpz_cmp(mpz_mA, mpz_mB) >= 0));
+		mpz_set_ui(mpz_mD, cmp);
+	}
+
+	e3_set_e3reg(mD, mpz_mD, ees);
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_egeu) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) >= 0);
+	mpz_set_ui(mpz_mD, cmp);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_egts) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	unsigned signA = e3_get_sign_mpz(mpz_mA, eds);
+	unsigned signB = e3_get_sign_mpz(mpz_mB, eds);
+
+	int signDiff = signB - signA;
+	if (signDiff > 0) mpz_init_set_ui(mpz_mD, 1);
+	else if (signDiff < 0) mpz_init_set_ui(mpz_mD, 0);
+	else
+	{
+		if (signA) e3_twos_complement(mpz_mA, eds);
+		if (signB) e3_twos_complement(mpz_mB, eds);
+		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) < 0) : (mpz_cmp(mpz_mA, mpz_mB) > 0));
+		mpz_set_ui(mpz_mD, cmp);
+	}
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_egtu) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) > 0);
+	mpz_set_ui(mpz_mD, cmp);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_einc) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+
+	mpz_t mpz_mD;
+	mpz_init(mpz_mD);
+	e3_set_mpz(mpz_mD, mD, ees);
+	e3_decrypt(mpz_mD, mpz_mD, eds);
+
+	mpz_add_ui(mpz_mD, mpz_mD, 1);
+	
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_eles) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	unsigned signA = e3_get_sign_mpz(mpz_mA, eds);
+	unsigned signB = e3_get_sign_mpz(mpz_mB, eds);
+
+	int signDiff = signB - signA;
+	if (signDiff < 0) mpz_init_set_ui(mpz_mD, 1);
+	else if (signDiff > 0) mpz_init_set_ui(mpz_mD, 0);
+	else
+	{
+		if (signA) e3_twos_complement(mpz_mA, eds);
+		if (signB) e3_twos_complement(mpz_mB, eds);
+		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) >= 0) : (mpz_cmp(mpz_mA, mpz_mB) <= 0));
+		mpz_set_ui(mpz_mD, cmp);
+	}
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_eleu) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) <= 0);
+	mpz_set_ui(mpz_mD, cmp);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_elts) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init(mpz_mD);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+	unsigned signA = e3_get_sign_mpz(mA, eds);
+	unsigned signB = e3_get_sign_mpz(mB, eds);
+
+	int signDiff = signB - signA;
+	if (signDiff < 0) mpz_init_set_ui(mpz_mD, 1);
+	else if (signDiff > 0) mpz_init_set_ui(mpz_mD, 0);
+	else
+	{
+		if (signA) e3_twos_complement(mpz_mA, eds);
+		if (signB) e3_twos_complement(mpz_mB, eds);
+		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) > 0) : (mpz_cmp(mpz_mA, mpz_mB) < 0));
+		mpz_set_ui(mpz_mD, cmp);
+	}
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_eltu) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) < 0);
+	mpz_set_ui(mpz_mD, cmp);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_eland) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	unsigned cmp = (mpz_cmp_ui(mpz_mA, 0) && mpz_cmp_ui(mpz_mB, 0));
+	mpz_set_ui(mpz_mD, cmp);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_elnot) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+
+	mpz_t mpz_mD, mpz_mA;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+
+	unsigned cmp = !mpz_cmp_ui(mpz_mA, 0);
+	mpz_set_ui(mpz_mD, cmp);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_elor) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	unsigned cmp = (mpz_cmp_ui(mpz_mA, 0) || mpz_cmp_ui(mpz_mB, 0));
+	mpz_set_ui(mpz_mD, cmp);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_emods) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mB;
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	if (mpz_cmp_ui(mpz_mB, 0))
+	{
+		mpz_t mpz_mD, mpz_mA;
+		mpz_init(mpz_mD);
+		mpz_init(mpz_mA);
+		e3_set_mpz(mpz_mA, mA, ees);
+		unsigned signA = e3_get_sign(mA, eds);
+		unsigned signB = e3_get_sign(mB, eds);
+
+		if (signA) e3_twos_complement(mpz_mA, eds);
+		if (signB) e3_twos_complement(mpz_mB, eds);
+		mpz_mod(mpz_mD, mpz_mA, mpz_mB);
+		if (signA) e3_twos_complement(mpz_mD, eds);
+
+		e3_encrypt(mpz_mD, mpz_mD, eds);
+		e3_set_e3reg(mD, mpz_mD, ees);
+
+		mpz_clear(mpz_mA);
+		mpz_clear(mpz_mD);
+	}
+	else
+	{
+		e3_rand(mD, ees);
+	}
+
+	mpz_clear(mpz_mB);
+}
+
+INSTRUCTION (le_emodu) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mB;
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	if (mpz_cmp_ui(mpz_mB, 0))
+	{
+		mpz_t mpz_mD, mpz_mA;
+		
+		mpz_init(mpz_mD);
+		mpz_init(mpz_mA);
+		e3_set_mpz(mpz_mA, mA, ees);
+		e3_decrypt(mpz_mA, mpz_mA, eds);
+
+		mpz_mod(mpz_mD, mpz_mA, mpz_mB);
+
+		e3_encrypt(mpz_mD, mpz_mD, eds);
+		e3_set_e3reg(mD, mpz_mD, ees);
+
+		mpz_clear(mpz_mA);
+		mpz_clear(mpz_mD);
+	}
+	else
+	{
+		e3_rand(mD, ees);
+	}
+	
+	mpz_clear(mpz_mB);
+}
+
+INSTRUCTION (le_emacs) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	unsigned signA = e3_get_sign(mA, ees);
+	unsigned signB = e3_get_sign(mB, ees);
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_set_mpz(mpz_mD, mD, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+	e3_decrypt(mpz_mD, mpz_mD, eds);
+
+	if (signA) e3_twos_complement(mpz_mA, eds);
+	if (signB) e3_twos_complement(mpz_mB, eds);
+	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
+	if (signA ^ signB) e3_twos_complement(mpz_mA, eds);
+	mpz_add(mpz_mD, mpz_mD, mpz_mA);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_emacu) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_set_mpz(mpz_mD, mD, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+	e3_decrypt(mpz_mD, mpz_mD, eds);
+
+	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
+	mpz_add(mpz_mD, mpz_mD, mpz_mA);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_emsbs) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_set_mpz(mpz_mD, mD, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+	e3_decrypt(mpz_mD, mpz_mD, eds);
+	unsigned signA = e3_get_sign_mpz(mA, eds);
+	unsigned signB = e3_get_sign_mpz(mB, eds);
+
+	if (signA) e3_twos_complement(mpz_mA, eds);
+	if (signB) e3_twos_complement(mpz_mB, eds);
+	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
+	if (!(signA ^ signB)) e3_twos_complement(mpz_mA, eds);
+	mpz_add(mpz_mD, mpz_mD, mpz_mA);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_emsbu) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_set_mpz(mpz_mD, mD, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+	e3_decrypt(mpz_mD, mpz_mD, eds);
+
+	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
+	e3_twos_complement(mpz_mA, ees);
+	mpz_add(mpz_mD, mpz_mD, mpz_mA);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_emuls) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+	unsigned signA = e3_get_sign_mpz(mA, eds);
+	unsigned signB = e3_get_sign_mpz(mB, eds);
+
+	if (signA) e3_twos_complement(mpz_mA, eds);
+	if (signB) e3_twos_complement(mpz_mB, eds);
+	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
+	if (signA ^ signB) e3_twos_complement(mpz_mD, eds);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_emulu) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_ene) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) != 0);
+	mpz_set_ui(mpz_mD, cmp);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_erand) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	
+	mpz_t mpz_mD;
+	mpz_init(mpz_mD);
+
+	e3_randomp2(mpz_mD, eds);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_eror) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mask;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init_set_ui(mask, eds-1);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	// selecting only the lower bits of mB
+	mpz_and(mpz_mB, mpz_mB, mask);
+	unsigned shift = mpz_get_ui(mpz_mB);
+	
+	// rotating the bits lower than the shift to the MSB positions
+	mpz_set_ui(mask, 1);
+	mpz_mul_2exp(mask, mask, shift);
+	mpz_sub_ui(mask, mask, 1);
+	mpz_and(mpz_mB, mpz_mA, mask);
+	mpz_mul_2exp(mpz_mB, mpz_mB, eds-shift);
+
+	// shifting the higher bits right
+	mpz_tdiv_q_2exp(mpz_mA, mpz_mA, shift);
+
+	// merging parts
+	mpz_xor(mpz_mD, mpz_mA, mpz_mB);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mask);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_esll) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mask;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init_set_ui(mask, eds-1);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	// selecting only the lower bits of mB
+	mpz_and(mpz_mB, mpz_mB, mask);
+	unsigned shift = mpz_get_ui(mpz_mB);
+	mpz_mul_2exp(mpz_mD, mpz_mA, shift);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mask);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_esra) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mask;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init_set_ui(mask, eds-1);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+	unsigned signA = e3_get_sign_mpz(mA, eds);
+
+	if (signA) e3_twos_complement(mpz_mA, eds);
+	// selecting only the lower bits of mB
+	mpz_and(mpz_mB, mpz_mB, mask);
+	unsigned shift = mpz_get_ui(mpz_mB);
+	mpz_tdiv_q_2exp(mpz_mD, mpz_mA, shift);
+	e3_extend_sign_mpz(mD, signA, eds);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mask);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_esrl) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB, mask;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	mpz_init_set_ui(mask, eds-1);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	// selecting only the lower bits of mB
+	mpz_and(mpz_mB, mpz_mB, mask);
+	unsigned shift = mpz_get_ui(mpz_mB);
+	mpz_tdiv_q_2exp(mpz_mD, mpz_mA, shift);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(mask);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_esub) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
+
+	e3_twos_complement(mpz_mB, eds);
+	mpz_add(mpz_mD, mpz_mA, mpz_mB);
+
+	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
 
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
@@ -1312,8 +2512,10 @@ INSTRUCTION (le_enc) {
 	e3_set_mpz(mpz_mA, mA, eds);
 
 	e3_encrypt(mpz_mD, mpz_mA, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
 
-	e3_set_e3reg(mD, mpz_mD, ees);	
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mD);
 }
 
 INSTRUCTION (le_gbk) {
@@ -2225,12 +3427,8 @@ INSTRUCTION (le_mods) {
 		
 		if (signA) e3_twos_complement(mpz_mA, reglen_bit);
 		if (signB) e3_twos_complement(mpz_mB, reglen_bit);
-
 		mpz_mod(mpz_mD, mpz_mA, mpz_mB);
-
 		if (signA) e3_twos_complement(mpz_mD, reglen_bit);
-		e3_set_e3reg(mD, mpz_mD, reglen_bit);
-
 		e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 		mpz_clear(mpz_mA);

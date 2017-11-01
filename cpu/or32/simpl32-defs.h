@@ -114,6 +114,47 @@ extern void l_mod PARAMS((struct iqueue_entry *));
 
 // Secure Computation
 extern void le_eadd PARAMS((struct iqueue_entry *));
+extern void le_eand PARAMS((struct iqueue_entry *));
+extern void le_enot PARAMS((struct iqueue_entry *));
+extern void le_eor PARAMS((struct iqueue_entry *));
+extern void le_ecmov PARAMS((struct iqueue_entry *));
+extern void le_edec PARAMS((struct iqueue_entry *));
+extern void le_edivs PARAMS((struct iqueue_entry *));
+extern void le_edivu PARAMS((struct iqueue_entry *));
+extern void le_eeq PARAMS((struct iqueue_entry *));
+extern void le_exor PARAMS((struct iqueue_entry *));
+extern void le_epows PARAMS((struct iqueue_entry *));
+extern void le_epowu PARAMS((struct iqueue_entry *));
+extern void le_eff1 PARAMS((struct iqueue_entry *));
+extern void le_efl1 PARAMS((struct iqueue_entry *));
+extern void le_egcd PARAMS((struct iqueue_entry *));
+extern void le_eges PARAMS((struct iqueue_entry *));
+extern void le_egeu PARAMS((struct iqueue_entry *));
+extern void le_egts PARAMS((struct iqueue_entry *));
+extern void le_egtu PARAMS((struct iqueue_entry *));
+extern void le_einc PARAMS((struct iqueue_entry *));
+extern void le_eles PARAMS((struct iqueue_entry *));
+extern void le_eleu PARAMS((struct iqueue_entry *));
+extern void le_elts PARAMS((struct iqueue_entry *));
+extern void le_eltu PARAMS((struct iqueue_entry *));
+extern void le_eland PARAMS((struct iqueue_entry *));
+extern void le_elnot PARAMS((struct iqueue_entry *));
+extern void le_elor PARAMS((struct iqueue_entry *));
+extern void le_emods PARAMS((struct iqueue_entry *));
+extern void le_emodu PARAMS((struct iqueue_entry *));
+extern void le_emacs PARAMS((struct iqueue_entry *));
+extern void le_emacu PARAMS((struct iqueue_entry *));
+extern void le_emsbs PARAMS((struct iqueue_entry *));
+extern void le_emsbu PARAMS((struct iqueue_entry *));
+extern void le_emuls PARAMS((struct iqueue_entry *));
+extern void le_emulu PARAMS((struct iqueue_entry *));
+extern void le_ene PARAMS((struct iqueue_entry *));
+extern void le_erand PARAMS((struct iqueue_entry *));
+extern void le_eror PARAMS((struct iqueue_entry *));
+extern void le_esll PARAMS((struct iqueue_entry *));
+extern void le_esra PARAMS((struct iqueue_entry *));
+extern void le_esrl PARAMS((struct iqueue_entry *));
+extern void le_esub PARAMS((struct iqueue_entry *));
 
 // Other
 extern void le_enc PARAMS((struct iqueue_entry *));
