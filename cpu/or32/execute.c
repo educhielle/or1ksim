@@ -949,24 +949,64 @@ e3_isRSA()
 }
 
 static void
-e3_decryptPaillier(mpz_t* c, mpz_t m)
+e3_decryptPaillier(mpz_t* m, mpz_t c)
 {
+	mpz_t phi, mi, n, n2;
+	e3_set_mpz_p(phi, cpu_state.e3esr[E3_PRI], E3_REGLEN/2, E3_REGLEN);
+	e3_set_mpz_p(mi, cpu_state.e3esr[E3_PRI], 0, E3_REGLEN/2);
+	e3_set_mpz_p(n, cpu_state.e3esr[E3_PUB], E3_REGLEN/2, E3_REGLEN);
+	e3_set_mpz_p(n2, cpu_state.e3esr[E3_MOD], 0, E3_REGLEN);
+/*
+	gmp_printf("c: %Zx\n", c);
+	gmp_printf("phi: %Zx\n", phi);
+	gmp_printf("mi: %Zx\n", mi);
+	gmp_printf("n: %Zx\n", n);
+	gmp_printf("n2: %Zx\n", n2);
+*/
+	mpz_powm(phi, c, phi, n2);
+	mpz_sub_ui(phi, phi, 1);
+	mpz_tdiv_q(phi, phi, n);
+	mpz_mul(m, phi, mi);
+	mpz_mod(m, m, n);
+//	gmp_printf("m: %Zx\n", m);
+
+	mpz_clear(phi);
+	mpz_clear(mi);
+	mpz_clear(n);
+	mpz_clear(n2);
 }
 
 static void
 e3_encryptPaillier(mpz_t* c, mpz_t m)
 {
-	mpz_t g, r, n, n2;
-	e3_set_mpz_p(g, cpu_state.e3esr[E3_PUB], E3_REGLEN/2, E3_REGLEN);
-	e3_set_mpz_p(n, cpu_state.e3esr[E3_PUB], 0, E3_REGLEN/2);
+	mpz_t g, r, n, n2, gcd;
+	mpz_init(gcd);
+	e3_set_mpz_p(n, cpu_state.e3esr[E3_PUB], E3_REGLEN/2, E3_REGLEN);
+	e3_set_mpz_p(g, cpu_state.e3esr[E3_PUB], 0, E3_REGLEN/2);
 	e3_set_mpz_p(n2, cpu_state.e3esr[E3_MOD], 0, E3_REGLEN);
-	e3_random(r, n);
+	
+	do
+	{
+		e3_random(r, n);
+		mpz_gcd(gcd, r, n);
+		if (mpz_cmp_ui(gcd,1)) printf("hit\n");
+	} while (mpz_cmp_ui(gcd, 1));
+
+/*
+	gmp_printf("m: %Zx\n", m);
+	gmp_printf("g: %Zx\n", g);
+	gmp_printf("r: %Zx\n", r);
+	gmp_printf("n: %Zx\n", n);
+	gmp_printf("n2: %Zx\n", n2);
+*/
 
 	mpz_powm(g, g, m, n2);
 	mpz_powm(r, r, n, n2);
 	mpz_mul(c, g, r);
 	mpz_mod(c, c, n2);
+//	gmp_printf("c: %Zx\n", c);
 
+	mpz_clear(gcd);
 	mpz_clear(g);
 	mpz_clear(r);
 	mpz_clear(n);
@@ -1009,15 +1049,19 @@ e3_decrypt_fused(mpz_t* m, mpz_t chi, mpz_t clo)
 
 	e3_decryptRSA(mhi, chi, E3_FPRI, E3_FMOD);
 	e3_decryptRSA(mlo, clo, E3_FPRI, E3_FMOD);
+//	gmp_printf("mhi: %Zx\tmlo: %Zx\n", mhi, mlo);
 
 	mpz_and(mhi, mhi, mask);
 	mpz_mul_2exp(mhi, mhi, E3_REGLEN/2);
 	mpz_and(mlo, mlo, mask);
 	mpz_ior(m, mhi, mlo);
+//	gmp_printf("m: %Zx\n", m);
 
+/*
 	mpz_clear(mask);
 	mpz_clear(mhi);
 	mpz_clear(mlo);
+*/
 }
 
 static void
@@ -1044,6 +1088,7 @@ e3_decrypt_boot(mpz_t* m, mpz_t chi, mpz_t clo)
 static void
 e3_decrypt(mpz_t* mpz_mD, mpz_t mpz_mA, unsigned reglen_bit)
 {
+//	printf("dec -> isRSA: %u\tisPaillier: %u\n", e3_isRSA(), e3_isPaillier());
 	if (e3_isRSA()) e3_decryptRSA(mpz_mD, mpz_mA, E3_PRI, E3_MOD);
 	else if (e3_isPaillier()) e3_decryptPaillier(mpz_mD, mpz_mA);
 
@@ -1055,16 +1100,13 @@ e3_decrypt(mpz_t* mpz_mD, mpz_t mpz_mA, unsigned reglen_bit)
 static void
 e3_encrypt(mpz_t* mpz_mD, mpz_t mpz_mA, unsigned reglen_bit)
 {
+//	printf("enc -> isRSA: %u\tisPaillier: %u\n", e3_isRSA(), e3_isPaillier());
 	mpz_t mask;
 	e3_mpz_mask(mask, reglen_bit);
 	mpz_and(mpz_mA, mpz_mA, mask);
 
 	if (e3_isRSA()) e3_encryptRSA(mpz_mD, mpz_mA, E3_PUB, E3_MOD);
 	else if (e3_isPaillier()) e3_encryptPaillier(mpz_mD, mpz_mA);
-
-	mpz_t c;
-	mpz_init(c);
-	e3_encryptRSA(c, mpz_mD, E3_PRI, E3_MOD);
 }
 
 // Instruction

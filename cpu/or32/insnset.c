@@ -1266,7 +1266,7 @@ INSTRUCTION (l_mod) {
 INSTRUCTION (le_eadd) {
 	unsigned ees = e3_get_effective_encrypted_size();
 	unsigned eds = e3_get_effective_decrypted_size();
-
+	printf("ees: %u\teds: %u\n", ees, eds);
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
@@ -1281,6 +1281,7 @@ INSTRUCTION (le_eadd) {
 	e3_decrypt(mpz_mB, mpz_mB, eds);
 
 	mpz_add(mpz_mD, mpz_mA, mpz_mB);
+	gmp_printf("dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
@@ -2502,7 +2503,7 @@ INSTRUCTION (le_esub) {
 INSTRUCTION (le_enc) {
 	unsigned ees = e3_get_effective_encrypted_size();
 	unsigned eds = e3_get_effective_decrypted_size();
-
+	
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 
@@ -2537,9 +2538,8 @@ INSTRUCTION (le_mafdtspr) {
 		mpz_init(mpz_mB);
 		e3_set_mpz(mpz_mA, mA, reglen_bit);
 		e3_set_mpz(mpz_mB, mB, reglen_bit);
-	
-		e3_decrypt_fused(mpz_esrD, mpz_mA, mpz_mB);
 
+		e3_decrypt_fused(mpz_esrD, mpz_mA, mpz_mB);
 		e3_set_esr(esrD, mpz_esrD);
 
 		mpz_clear(mpz_esrD);
@@ -2591,6 +2591,7 @@ INSTRUCTION (le_mfftsk) {
 	e3_copy(cpu_state.e3esr[E3_PUB], cpu_state.e3esr[E3_FPUB], E3_REGLEN);
 	e3_copy(cpu_state.e3esr[E3_PRI], cpu_state.e3esr[E3_FPRI], E3_REGLEN);
 	e3_copy(cpu_state.e3esr[E3_MOD], cpu_state.e3esr[E3_FMOD], E3_REGLEN);
+	cpu_state.sprs[SPR_E3_CTRL0] = cpu_state.sprs[SPR_E3_CTRL0] | 0x1;
 }
 
 INSTRUCTION (le_mfbtsk) {
@@ -2600,6 +2601,7 @@ INSTRUCTION (le_mfbtsk) {
 	e3_copy(cpu_state.e3esr[E3_PUB], cpu_state.e3esr[E3_BPUB], E3_REGLEN);
 	e3_copy(cpu_state.e3esr[E3_PRI], cpu_state.e3esr[E3_BPRI], E3_REGLEN);
 	e3_copy(cpu_state.e3esr[E3_MOD], cpu_state.e3esr[E3_BMOD], E3_REGLEN);
+	cpu_state.sprs[SPR_E3_CTRL0] = cpu_state.sprs[SPR_E3_CTRL0] | 0x1;
 }
 
 INSTRUCTION (le_mfer) {
@@ -2640,7 +2642,7 @@ INSTRUCTION (le_mfspr) {
 }
 
 INSTRUCTION (le_mtspr) {
-	unsigned reglen_bit = e3_get_effective_decrypted_size();
+	unsigned reglen_bit = e3_get_effective_encrypted_size();
 
 	orreg_t esrD = PARAM0;
 	orreg_t mA = PARAM1;
