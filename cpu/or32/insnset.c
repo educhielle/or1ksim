@@ -2655,6 +2655,10 @@ INSTRUCTION (le_mtspr) {
 		e3_clear(cpu_state.e3esr[E3_SSTAT]);
 		e3_copy(cpu_state.e3esr[esrD],cpu_state.e3reg[mA], reglen_bit);
 	}
+	else if (esrD == E3_PRI) // debug only
+	{
+		e3_copy(cpu_state.e3esr[esrD],cpu_state.e3reg[mA], reglen_bit);
+	}
 }
 
 INSTRUCTION (le_sfbusy) {
@@ -2665,18 +2669,21 @@ INSTRUCTION (le_sfbusy) {
 }
 
 INSTRUCTION (le_lw) {
+	printf("lw in\n");
 	uint32_t val;
 	if (config.cpu.sbuf_len) sbuf_load ();
 	
 	orreg_t mD = PARAM0;
 	orreg_t rA = PARAM1;
 	orreg_t uimm = PARAM2;
-
+	
 	val = eval_mem32(rA, &breakpoint);
+	//printf("mD: %u\trA: %x\tuimm: %u\tval: %u\texcept_pending: %u\n", mD, rA, uimm, val, except_pending);
 	/* If eval operand produced exception don't set anything. JPB changed to
 	trigger on breakpoint, as well as except_pending (seemed to be a bug). */
 	if (!(except_pending || breakpoint))
 		cpu_state.e3reg[mD][uimm] = val;
+	printf("lw out\n");
 }
 
 INSTRUCTION (le_lw4096) {

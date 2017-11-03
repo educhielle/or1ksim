@@ -984,21 +984,20 @@ e3_encryptPaillier(mpz_t* c, mpz_t m)
 	e3_set_mpz_p(n, cpu_state.e3esr[E3_PUB], E3_REGLEN/2, E3_REGLEN);
 	e3_set_mpz_p(g, cpu_state.e3esr[E3_PUB], 0, E3_REGLEN/2);
 	e3_set_mpz_p(n2, cpu_state.e3esr[E3_MOD], 0, E3_REGLEN);
-	
+/*
+	gmp_printf("m: %Zx\n", m);
+	gmp_printf("g: %Zx\n", g);
+	gmp_printf("n: %Zx\n", n);
+	gmp_printf("n2: %Zx\n", n2);	
+*/
 	do
 	{
 		e3_random(r, n);
 		mpz_gcd(gcd, r, n);
-		if (mpz_cmp_ui(gcd,1)) printf("hit\n");
+		//if (mpz_cmp_ui(gcd,1)) printf("hit\n");
 	} while (mpz_cmp_ui(gcd, 1));
 
-/*
-	gmp_printf("m: %Zx\n", m);
-	gmp_printf("g: %Zx\n", g);
-	gmp_printf("r: %Zx\n", r);
-	gmp_printf("n: %Zx\n", n);
-	gmp_printf("n2: %Zx\n", n2);
-*/
+//	gmp_printf("r: %Zx\n", r);
 
 	mpz_powm(g, g, m, n2);
 	mpz_powm(r, r, n, n2);
