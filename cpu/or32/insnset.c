@@ -1266,7 +1266,7 @@ INSTRUCTION (l_mod) {
 INSTRUCTION (le_eadd) {
 	unsigned ees = e3_get_effective_encrypted_size();
 	unsigned eds = e3_get_effective_decrypted_size();
-	printf("ees: %u\teds: %u\n", ees, eds);
+	//printf("ees: %u\teds: %u\n", ees, eds);
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	orreg_t mB = PARAM2;
@@ -1281,7 +1281,7 @@ INSTRUCTION (le_eadd) {
 	e3_decrypt(mpz_mB, mpz_mB, eds);
 
 	mpz_add(mpz_mD, mpz_mA, mpz_mB);
-	gmp_printf("dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
+	gmp_printf("le.eadd -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
@@ -1510,10 +1510,11 @@ INSTRUCTION (le_eeq) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) == 0);
 	mpz_set_ui(mpz_mD, cmp);
+	gmp_printf("le.eeq -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
-
+	
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 	mpz_clear(mpz_mD);
@@ -1785,6 +1786,7 @@ INSTRUCTION (le_egtu) {
 }
 
 INSTRUCTION (le_einc) {
+	//printf("le.einc in\n");
 	unsigned ees = e3_get_effective_encrypted_size();
 	unsigned eds = e3_get_effective_decrypted_size();
 
@@ -1794,13 +1796,14 @@ INSTRUCTION (le_einc) {
 	mpz_init(mpz_mD);
 	e3_set_mpz(mpz_mD, mD, ees);
 	e3_decrypt(mpz_mD, mpz_mD, eds);
-
+	gmp_printf("le.einc -> %Zx -> ", mpz_mD);
 	mpz_add_ui(mpz_mD, mpz_mD, 1);
-	
+	gmp_printf("%Zx\n", mpz_mD);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
 	mpz_clear(mpz_mD);
+	//printf("le.einc out\n");
 }
 
 INSTRUCTION (le_eles) {
@@ -2239,14 +2242,14 @@ INSTRUCTION (le_emuls) {
 	e3_set_mpz(mpz_mB, mB, ees);
 	e3_decrypt(mpz_mA, mpz_mA, eds);
 	e3_decrypt(mpz_mB, mpz_mB, eds);
-	unsigned signA = e3_get_sign_mpz(mA, eds);
-	unsigned signB = e3_get_sign_mpz(mB, eds);
 
+	unsigned signA = e3_get_sign_mpz(mpz_mA, eds);
+	unsigned signB = e3_get_sign_mpz(mpz_mB, eds);
 	if (signA) e3_twos_complement(mpz_mA, eds);
 	if (signB) e3_twos_complement(mpz_mB, eds);
 	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
 	if (signA ^ signB) e3_twos_complement(mpz_mD, eds);
-
+	gmp_printf("le.emuls -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2605,6 +2608,7 @@ INSTRUCTION (le_mfbtsk) {
 }
 
 INSTRUCTION (le_mfer) {
+	//printf("le.mfer in\n");
 	unsigned reglen_bit = e3_get_effective_decrypted_size();
 
 	orreg_t rD;
@@ -2615,9 +2619,11 @@ INSTRUCTION (le_mfer) {
 	rD = cpu_state.e3reg[mA][uimm];
 
 	SET_PARAM0(rD);
+	//printf("le.mfer out\n");
 }
 
 INSTRUCTION (le_mter) {
+	//printf("le.mter in\n");
 	unsigned reglen_bit = e3_get_effective_decrypted_size();
 
 	orreg_t mD = PARAM0;
@@ -2627,6 +2633,7 @@ INSTRUCTION (le_mter) {
 	uimm = e3_filter_imm(uimm);
 
 	cpu_state.e3reg[mD][uimm] = rA;
+	//printf("le.mter out\n");
 }
 
 INSTRUCTION (le_mfspr) {
