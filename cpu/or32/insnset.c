@@ -1380,17 +1380,19 @@ INSTRUCTION (le_ecmov) {
 
 	if (mpz_cmp_ui(mpz_mD, 0) != 0)
 	{
-		e3_set_mpz(mpz_mD, mA, ees);
-		e3_decrypt(mpz_mD, mpz_mD, eds); // remove when reencrypt
+		//e3_set_mpz(mpz_mA, mA, ees);
+		//e3_decrypt(mpz_mA, mpz_mA, eds); // remove when reencrypt
+		e3_copy(cpu_state.e3reg[mD], cpu_state.e3esr[mA], ees);
 	}
 	else
 	{
-		e3_set_mpz(mpz_mD, mB, ees);
-		e3_decrypt(mpz_mD, mpz_mD, eds); // remove when reencrypt
+		//e3_set_mpz(mpz_mA, mB, ees);
+		//e3_decrypt(mpz_mA, mpz_mA, eds); // remove when reencrypt
+		e3_copy(cpu_state.e3reg[mD], cpu_state.e3esr[mB], ees);
 	}
-
-	e3_encrypt(mpz_mD, mpz_mD, eds); // replace by reencrypt
-	e3_set_e3reg(mD, mpz_mD, ees);
+	gmp_printf("le.ecmov -> dD: %Zx\n", mpz_mD);
+	//e3_encrypt(mpz_mA, mpz_mA, eds); // replace by reencrypt
+	//e3_set_e3reg(mD, mpz_mA, ees);
 
 	mpz_clear(mpz_mD);
 }
@@ -1683,9 +1685,9 @@ INSTRUCTION (le_eges) {
 		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) <= 0) : (mpz_cmp(mpz_mA, mpz_mB) >= 0));
 		mpz_set_ui(mpz_mD, cmp);
 	}
-
-	e3_set_e3reg(mD, mpz_mD, ees);
+	gmp_printf("le.eges -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
+	e3_set_e3reg(mD, mpz_mD, ees);
 
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
@@ -1748,7 +1750,7 @@ INSTRUCTION (le_egts) {
 		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) < 0) : (mpz_cmp(mpz_mA, mpz_mB) > 0));
 		mpz_set_ui(mpz_mD, cmp);
 	}
-
+	gmp_printf("le.egts -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1820,6 +1822,8 @@ INSTRUCTION (le_eles) {
 	mpz_init(mpz_mB);
 	e3_set_mpz(mpz_mA, mA, ees);
 	e3_set_mpz(mpz_mB, mB, ees);
+	e3_decrypt(mpz_mA, mpz_mA, eds);
+	e3_decrypt(mpz_mB, mpz_mB, eds);
 	unsigned signA = e3_get_sign_mpz(mpz_mA, eds);
 	unsigned signB = e3_get_sign_mpz(mpz_mB, eds);
 
@@ -1833,7 +1837,7 @@ INSTRUCTION (le_eles) {
 		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) >= 0) : (mpz_cmp(mpz_mA, mpz_mB) <= 0));
 		mpz_set_ui(mpz_mD, cmp);
 	}
-
+	gmp_printf("le.eles -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1886,8 +1890,8 @@ INSTRUCTION (le_elts) {
 	e3_set_mpz(mpz_mB, mB, ees);
 	e3_decrypt(mpz_mA, mpz_mA, eds);
 	e3_decrypt(mpz_mB, mpz_mB, eds);
-	unsigned signA = e3_get_sign_mpz(mA, eds);
-	unsigned signB = e3_get_sign_mpz(mB, eds);
+	unsigned signA = e3_get_sign_mpz(mpz_mA, eds);
+	unsigned signB = e3_get_sign_mpz(mpz_mB, eds);
 
 	int signDiff = signB - signA;
 	if (signDiff < 0) mpz_init_set_ui(mpz_mD, 1);
@@ -1899,7 +1903,7 @@ INSTRUCTION (le_elts) {
 		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) > 0) : (mpz_cmp(mpz_mA, mpz_mB) < 0));
 		mpz_set_ui(mpz_mD, cmp);
 	}
-
+	gmp_printf("le.elts -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2492,7 +2496,7 @@ INSTRUCTION (le_esub) {
 
 	e3_twos_complement(mpz_mB, eds);
 	mpz_add(mpz_mD, mpz_mA, mpz_mB);
-
+	gmp_printf("le.esub -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 

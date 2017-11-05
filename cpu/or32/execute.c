@@ -1056,11 +1056,9 @@ e3_decrypt_fused(mpz_t* m, mpz_t chi, mpz_t clo)
 	mpz_ior(m, mhi, mlo);
 //	gmp_printf("m: %Zx\n", m);
 
-/*
 	mpz_clear(mask);
 	mpz_clear(mhi);
 	mpz_clear(mlo);
-*/
 }
 
 static void
@@ -1094,6 +1092,8 @@ e3_decrypt(mpz_t* mpz_mD, mpz_t mpz_mA, unsigned reglen_bit)
 	mpz_t mask;
 	e3_mpz_mask(mask, reglen_bit);
 	mpz_and(mpz_mD, mpz_mD, mask);
+
+	mpz_clear(mask);
 }
 
 static void
@@ -1106,6 +1106,8 @@ e3_encrypt(mpz_t* mpz_mD, mpz_t mpz_mA, unsigned reglen_bit)
 
 	if (e3_isRSA()) e3_encryptRSA(mpz_mD, mpz_mA, E3_PUB, E3_MOD);
 	else if (e3_isPaillier()) e3_encryptPaillier(mpz_mD, mpz_mA);
+
+	mpz_clear(mask);
 }
 
 // Instruction
@@ -1652,7 +1654,6 @@ cpu_clock ()
 
   if (fetch ())
     {
-      PRINTF ("Breakpoint hit.\n");
       return  1;
     }
 
@@ -1705,6 +1706,7 @@ exec_main ()
 
   while (1)
     {
+	//printf("exec_main in\n");
       time_start = runtime.sim.cycles;
       if (config.debug.enabled)
 	{
@@ -1772,8 +1774,8 @@ exec_main ()
 /** backup begin **
       runtime.sim.cycles        += runtime.sim.mem_cycles;
 ** backup end **/
-	runtime.sim.cycles        += runtime.sim.mem_cycles + e3_cycles;
-	e3_cycles = 0;
+//	runtime.sim.cycles        += runtime.sim.mem_cycles + e3_cycles;
+//	e3_cycles = 0;
 /** MoMA end **/
       scheduler.job_queue->time -= runtime.sim.cycles - time_start;
 
