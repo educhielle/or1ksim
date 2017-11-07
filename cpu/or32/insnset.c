@@ -1540,6 +1540,7 @@ INSTRUCTION (le_exor) {
 	e3_decrypt(mpz_mB, mpz_mB, eds);
 
 	mpz_xor(mpz_mD, mpz_mA, mpz_mB);
+	gmp_printf("le.exor -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
@@ -2368,7 +2369,7 @@ INSTRUCTION (le_eror) {
 
 	// merging parts
 	mpz_xor(mpz_mD, mpz_mA, mpz_mB);
-
+	gmp_printf("le.eror -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2400,7 +2401,7 @@ INSTRUCTION (le_esll) {
 	mpz_and(mpz_mB, mpz_mB, mask);
 	unsigned shift = mpz_get_ui(mpz_mB);
 	mpz_mul_2exp(mpz_mD, mpz_mA, shift);
-
+	gmp_printf("le.esll -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2427,14 +2428,15 @@ INSTRUCTION (le_esra) {
 	e3_set_mpz(mpz_mB, mB, ees);
 	e3_decrypt(mpz_mA, mpz_mA, eds);
 	e3_decrypt(mpz_mB, mpz_mB, eds);
-	unsigned signA = e3_get_sign_mpz(mA, eds);
+	unsigned signA = e3_get_sign_mpz(mpz_mA, eds);
 
 	if (signA) e3_twos_complement(mpz_mA, eds);
 	// selecting only the lower bits of mB
 	mpz_and(mpz_mB, mpz_mB, mask);
 	unsigned shift = mpz_get_ui(mpz_mB);
 	mpz_tdiv_q_2exp(mpz_mD, mpz_mA, shift);
-	e3_extend_sign_mpz(mD, signA, eds);
+	e3_extend_sign_mpz(mpz_mD, signA, eds);
+	gmp_printf("le.esra -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
@@ -2467,7 +2469,7 @@ INSTRUCTION (le_esrl) {
 	mpz_and(mpz_mB, mpz_mB, mask);
 	unsigned shift = mpz_get_ui(mpz_mB);
 	mpz_tdiv_q_2exp(mpz_mD, mpz_mA, shift);
-
+	gmp_printf("le.esrl -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
