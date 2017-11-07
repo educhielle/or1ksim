@@ -327,7 +327,7 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
   {"l.mod", "rD,rA,rB", "01 0xE  DDDDD AAAAA BBBB B--- ---- 0x6",
    EF (l_mod), 0, it_unknown},
 
-// Secure Computation
+// Secure Int
   {"le.eadd", "P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-00-0100000",
    EF (le_eadd), 0, it_unknown},
   {"le.eand", "P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-00-0100011",
@@ -410,6 +410,36 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
    EF (le_esrl), 0, it_unknown},
   {"le.esub", "P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-00-0100010",
    EF (le_esub), 0, it_unknown},
+
+// Secure Ring
+  {"le.eradd", "P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-00-1100000",
+   EF (le_eradd), 0, it_unknown},
+  {"le.ernot", "P,Q",   "11 0xE  PPPPP QQQQQ ---- --00-1100110",
+   EF (le_ernot), 0, it_unknown},
+  {"le.erdec", "P",     "11 0xE  PPPPP ----- ---- --00-1101101",
+   EF (le_erdec), 0, it_unknown},
+  {"le.erpowu","P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-11-1101101",
+   EF (le_erpowu), 0, it_unknown},
+  {"le.erinc", "P",     "11 0xE  PPPPP ----- ---- --00-1100001",
+   EF (le_erinc), 0, it_unknown},
+  {"le.ermacu","P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-11-1100011",
+   EF (le_ermacu), 0, it_unknown},
+  {"le.ermsbu","P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-11-1100100",
+   EF (le_ermsbu), 0, it_unknown},
+  {"le.ermulu","P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-11-1101011",
+   EF (le_ermulu), 0, it_unknown},
+  {"le.errand","P",     "11 0xE  PPPPP ----- ---- --10-11-0000",
+   EF (le_errand), 0, it_unknown},
+  {"le.error", "P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-11-1101000",
+   EF (le_error), 0, it_unknown},
+  {"le.ersll", "P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-00-1101000",
+   EF (le_ersll), 0, it_unknown},
+  {"le.ersra", "P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-10-1101000",
+   EF (le_ersra), 0, it_unknown},
+  {"le.ersrl", "P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-01-1101000",
+   EF (le_ersrl), 0, it_unknown},
+  {"le.ersub", "P,Q,R", "11 0xE  PPPPP QQQQQ RRRR R-00-1100010",
+   EF (le_ersub), 0, it_unknown},
 
 // Other
   {"le.enc", "P,Q",     "11 0xE  PPPPP QQQQQ ---- --10-01-1110",
@@ -909,9 +939,16 @@ insn_extract (param_ch, enc_initial)
   return ret;
 }
 
+/* MoMA begin */
+/* backup begin *
 #define MAX_AUTOMATA_SIZE (1200)
 #define MAX_OP_TABLE_SIZE (1200)
 #define MAX_LEN           (8)
+ * backup end */
+#define MAX_AUTOMATA_SIZE (2400)
+#define MAX_OP_TABLE_SIZE (2400)
+#define MAX_LEN           (8)
+/* MoMA end */
 
 #ifndef MIN
 # define MIN(x,y)          ((x) < (y) ? (x) : (y))

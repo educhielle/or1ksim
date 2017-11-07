@@ -1261,7 +1261,7 @@ INSTRUCTION (l_mod) {
   SET_PARAM0(temp1);
 }
 
-// Secure Computation
+// Secure Int
 
 INSTRUCTION (le_eadd) {
 	unsigned ees = e3_get_effective_encrypted_size();
@@ -2500,6 +2500,102 @@ INSTRUCTION (le_esub) {
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+// Secure Ring
+
+INSTRUCTION (le_eradd) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+	
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB, n2;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_set_mpz_p(n2, cpu_state.e3esr[E3_MOD], 0, ees);
+
+	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
+	mpz_mod(mpz_mD, mpz_mD, n2);
+	gmp_printf("le.eradd -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
+
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(n2);
+	mpz_clear(mpz_mA);
+	mpz_clear(mpz_mB);
+	mpz_clear(mpz_mD);
+}
+
+INSTRUCTION (le_ernot) {
+}
+
+INSTRUCTION (le_erdec) {
+}
+
+INSTRUCTION (le_erpowu) {
+}
+
+INSTRUCTION (le_erinc) {
+}
+
+INSTRUCTION (le_ermacu) {
+}
+
+INSTRUCTION (le_ermsbu) {
+}
+
+INSTRUCTION (le_ermulu) {
+}
+
+INSTRUCTION (le_errand) {
+}
+
+INSTRUCTION (le_error) {
+}
+
+INSTRUCTION (le_ersll) {
+}
+
+INSTRUCTION (le_ersra) {
+}
+
+INSTRUCTION (le_ersrl) {
+}
+
+
+INSTRUCTION (le_ersub) {
+	unsigned ees = e3_get_effective_encrypted_size();
+	unsigned eds = e3_get_effective_decrypted_size();
+	
+	orreg_t mD = PARAM0;
+	orreg_t mA = PARAM1;
+	orreg_t mB = PARAM2;
+
+	mpz_t mpz_mD, mpz_mA, mpz_mB, n2;
+	mpz_init(mpz_mD);
+	mpz_init(mpz_mA);
+	mpz_init(mpz_mB);
+	e3_set_mpz(mpz_mA, mA, ees);
+	e3_set_mpz(mpz_mB, mB, ees);
+	e3_set_mpz_p(n2, cpu_state.e3esr[E3_MOD], 0, ees);
+
+	mpz_invert(mpz_mB, mpz_mB, n2);
+	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
+	mpz_mod(mpz_mD, mpz_mD, n2);
+	gmp_printf("le.ersub -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
+
+	e3_set_e3reg(mD, mpz_mD, ees);
+
+	mpz_clear(n2);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 	mpz_clear(mpz_mD);
