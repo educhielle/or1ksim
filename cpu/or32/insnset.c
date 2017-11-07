@@ -2525,7 +2525,7 @@ INSTRUCTION (le_eradd) {
 
 	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
 	mpz_mod(mpz_mD, mpz_mD, n2);
-	gmp_printf("le.eradd -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
+	gmp_printf("le.eradd\n"); // -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2591,7 +2591,7 @@ INSTRUCTION (le_ersub) {
 	mpz_invert(mpz_mB, mpz_mB, n2);
 	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
 	mpz_mod(mpz_mD, mpz_mD, n2);
-	gmp_printf("le.ersub -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
+	gmp_printf("le.ersub\n"); // -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 
 	e3_set_e3reg(mD, mpz_mD, ees);
 

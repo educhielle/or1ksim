@@ -860,7 +860,7 @@ e3_generate_fused_key()
 	mpz_init(gcd);
 	mpz_init(k);
 
-	mpz_set_ui(e, (2<<16)-1);
+	mpz_set_ui(e, (2<<16)+1);
 	mpz_set_str(p, E3_FUSED_P, 16);
 	mpz_set_str(q, E3_FUSED_Q, 16);
 
@@ -902,7 +902,7 @@ e3_generate_boot_key()
 	mpz_init(gcd);
 	mpz_init(k);
 
-	mpz_set_ui(e, (2<<16)-1);
+	mpz_set_ui(e, (2<<16)+1);
 	do
 	{
 		e3_prime(p, E3_MAX_RSA_KEY_SIZE/2);
