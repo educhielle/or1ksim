@@ -2431,7 +2431,7 @@ INSTRUCTION (le_esra) {
 	e3_decrypt(mpz_mB, mpz_mB, eds);
 	unsigned signA = e3_get_sign_mpz(mpz_mA, eds);
 
-	if (signA) e3_twos_complement(mpz_mA, eds);
+	//if (signA) e3_twos_complement(mpz_mA, eds);
 	// selecting only the lower bits of mB
 	mpz_and(mpz_mB, mpz_mB, mask);
 	unsigned shift = mpz_get_ui(mpz_mB);
