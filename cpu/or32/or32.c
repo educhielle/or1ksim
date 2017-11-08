@@ -322,6 +322,8 @@ CONST struct or32_opcode or1ksim_or32_opcodes[] = {
   {"l.cust4", "", "01 0xF  ----- ----- ---- ---- ---- ----",
    EF (l_cust4), 0, it_unknown},
 ** Backup end **/
+  {"l.debug", "", "01 0xD  ----- ----- ---- ---- ---- ----",
+   EF (l_debug), 0, it_unknown},
   {"l.modi", "rD,rA,I", "01 0xC  DDDDD AAAAA IIII IIII IIII IIII",
    EF (l_mod), 0, it_unknown},
   {"l.mod", "rD,rA,rB", "01 0xE  DDDDD AAAAA BBBB B--- ---- 0x6",

@@ -1261,6 +1261,10 @@ INSTRUCTION (l_mod) {
   SET_PARAM0(temp1);
 }
 
+INSTRUCTION (l_debug) {
+	printf("Runtime: %u cycles\n", runtime.sim.cycles);
+}
+
 // Secure Int
 
 INSTRUCTION (le_eadd) {
@@ -1282,7 +1286,6 @@ INSTRUCTION (le_eadd) {
 
 	mpz_add(mpz_mD, mpz_mA, mpz_mB);
 	gmp_printf("le.eadd -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
-
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1309,7 +1312,7 @@ INSTRUCTION (le_eand) {
 	e3_decrypt(mpz_mB, mpz_mB, eds);
 
 	mpz_and(mpz_mD, mpz_mA, mpz_mB);
-
+	gmp_printf("le.eand -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1331,7 +1334,7 @@ INSTRUCTION (le_enot) {
 	e3_decrypt(mpz_mD, mpz_mD, eds);
 
 	e3_mpz_not(mpz_mD, eds);
-
+	gmp_printf("le.enot -> dD: %Zx\n", mpz_mD);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1356,7 +1359,7 @@ INSTRUCTION (le_eor) {
 	e3_decrypt(mpz_mB, mpz_mB, eds);
 
 	mpz_ior(mpz_mD, mpz_mA, mpz_mB);
-
+	gmp_printf("le.eor -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1409,7 +1412,7 @@ INSTRUCTION (le_edec) {
 	e3_decrypt(mpz_mD, mpz_mD, eds);
 
 	mpz_sub_ui(mpz_mD, mpz_mD, 1);
-
+	gmp_printf("le.edec -> dD: %Zx\n", mpz_mD);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1443,7 +1446,7 @@ INSTRUCTION (le_edivs) {
 		if (signB) e3_twos_complement(mpz_mB, eds);
 		mpz_tdiv_q(mpz_mD, mpz_mA, mpz_mB);
 		if (signA ^ signB) e3_twos_complement(mpz_mD, eds);
-
+		gmp_printf("le.edivs -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		e3_encrypt(mpz_mD, mpz_mD, eds);
 		e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1479,7 +1482,7 @@ INSTRUCTION (le_edivu) {
 		e3_decrypt(mpz_mA, mpz_mA, eds);
 
 		mpz_tdiv_q(mpz_mD, mpz_mA, mpz_mB);
-
+		gmp_printf("le.edivu -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		e3_encrypt(mpz_mD, mpz_mD, eds);
 		e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1513,7 +1516,6 @@ INSTRUCTION (le_eeq) {
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) == 0);
 	mpz_set_ui(mpz_mD, cmp);
 	gmp_printf("le.eeq -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
-
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 	
@@ -1541,7 +1543,6 @@ INSTRUCTION (le_exor) {
 
 	mpz_xor(mpz_mD, mpz_mA, mpz_mB);
 	gmp_printf("le.exor -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
-
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1573,7 +1574,7 @@ INSTRUCTION (le_epows) {
 	if (signA) e3_twos_complement(mpz_mA, eds);
 	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_limit);
 	if (signA) e3_twos_complement(mpz_mD, eds);
-
+	gmp_printf("le.epows -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1603,7 +1604,7 @@ INSTRUCTION (le_epowu) {
 	e3_decrypt(mpz_mB, mpz_mB, eds);
 
 	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_limit);
-
+	gmp_printf("le.epowu -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1628,7 +1629,7 @@ INSTRUCTION (le_eff1) {
 
 	unsigned pos = e3_ff1_mpz(mpz_mA);
 	mpz_set_ui(mpz_mD, pos);
-
+	gmp_printf("le.eff1 -> dD: %Zx\tdA: %Zx\n", mpz_mD, mpz_mA);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1651,7 +1652,7 @@ INSTRUCTION (le_efl1) {
 
 	unsigned pos = e3_fl1_mpz(mpz_mA);
 	mpz_set_ui(mpz_mD, pos);
-
+	gmp_printf("le.efl1 -> dD: %Zx\tdA: %Zx\n", mpz_mD, mpz_mA);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1715,7 +1716,7 @@ INSTRUCTION (le_egeu) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) >= 0);
 	mpz_set_ui(mpz_mD, cmp);
-
+	gmp_printf("le.egeu -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1779,7 +1780,7 @@ INSTRUCTION (le_egtu) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) > 0);
 	mpz_set_ui(mpz_mD, cmp);
-
+	gmp_printf("le.egtu -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1866,7 +1867,7 @@ INSTRUCTION (le_eleu) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) <= 0);
 	mpz_set_ui(mpz_mD, cmp);
-
+	gmp_printf("le.eleu -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1932,7 +1933,7 @@ INSTRUCTION (le_eltu) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) < 0);
 	mpz_set_ui(mpz_mD, cmp);
-
+	gmp_printf("le.eltu -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1960,7 +1961,7 @@ INSTRUCTION (le_eland) {
 
 	unsigned cmp = (mpz_cmp_ui(mpz_mA, 0) && mpz_cmp_ui(mpz_mB, 0));
 	mpz_set_ui(mpz_mD, cmp);
-
+	gmp_printf("le.eland -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -1984,7 +1985,7 @@ INSTRUCTION (le_elnot) {
 
 	unsigned cmp = !mpz_cmp_ui(mpz_mA, 0);
 	mpz_set_ui(mpz_mD, cmp);
-
+	gmp_printf("le.elnot -> dD: %Zx\tdA: %Zx\n", mpz_mD, mpz_mA);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2011,7 +2012,7 @@ INSTRUCTION (le_elor) {
 
 	unsigned cmp = (mpz_cmp_ui(mpz_mA, 0) || mpz_cmp_ui(mpz_mB, 0));
 	mpz_set_ui(mpz_mD, cmp);
-
+	gmp_printf("le.elor -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2046,7 +2047,7 @@ INSTRUCTION (le_emods) {
 		if (signB) e3_twos_complement(mpz_mB, eds);
 		mpz_mod(mpz_mD, mpz_mA, mpz_mB);
 		if (signA) e3_twos_complement(mpz_mD, eds);
-
+		gmp_printf("le.emods -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		e3_encrypt(mpz_mD, mpz_mD, eds);
 		e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2084,7 +2085,7 @@ INSTRUCTION (le_emodu) {
 		e3_decrypt(mpz_mA, mpz_mA, eds);
 
 		mpz_mod(mpz_mD, mpz_mA, mpz_mB);
-
+		gmp_printf("le.emodu -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		e3_encrypt(mpz_mD, mpz_mD, eds);
 		e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2126,7 +2127,7 @@ INSTRUCTION (le_emacs) {
 	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
 	if (signA ^ signB) e3_twos_complement(mpz_mA, eds);
 	mpz_add(mpz_mD, mpz_mD, mpz_mA);
-
+	gmp_printf("le.emacs -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2156,7 +2157,7 @@ INSTRUCTION (le_emacu) {
 
 	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
 	mpz_add(mpz_mD, mpz_mD, mpz_mA);
-
+	gmp_printf("le.emacu -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2191,7 +2192,7 @@ INSTRUCTION (le_emsbs) {
 	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
 	if (!(signA ^ signB)) e3_twos_complement(mpz_mA, eds);
 	mpz_add(mpz_mD, mpz_mD, mpz_mA);
-
+	gmp_printf("le.emsbs -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2222,7 +2223,7 @@ INSTRUCTION (le_emsbu) {
 	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
 	e3_twos_complement(mpz_mA, ees);
 	mpz_add(mpz_mD, mpz_mD, mpz_mA);
-
+	gmp_printf("le.msbu -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2281,7 +2282,7 @@ INSTRUCTION (le_emulu) {
 	e3_decrypt(mpz_mB, mpz_mB, eds);
 
 	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
-
+	gmp_printf("le.emulu -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2309,7 +2310,7 @@ INSTRUCTION (le_ene) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) != 0);
 	mpz_set_ui(mpz_mD, cmp);
-
+	gmp_printf("le.ene -> dD: %Zx\tdA: %Zx\tdB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2328,7 +2329,7 @@ INSTRUCTION (le_erand) {
 	mpz_init(mpz_mD);
 
 	e3_randomp2(mpz_mD, eds);
-
+	gmp_printf("le.erand -> dD: %Zx\n", mpz_mD);
 	e3_encrypt(mpz_mD, mpz_mD, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 

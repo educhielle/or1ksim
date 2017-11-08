@@ -1706,7 +1706,6 @@ exec_main ()
 
   while (1)
     {
-	//printf("exec_main in\n");
       time_start = runtime.sim.cycles;
       if (config.debug.enabled)
 	{
@@ -1771,9 +1770,9 @@ exec_main ()
 	}
 
 /** MoMA begin **/
-/** backup begin **
+/** backup begin **/
       runtime.sim.cycles        += runtime.sim.mem_cycles;
-** backup end **/
+/** backup end **/
 //	runtime.sim.cycles        += runtime.sim.mem_cycles + e3_cycles;
 //	e3_cycles = 0;
 /** MoMA end **/
