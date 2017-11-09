@@ -1262,7 +1262,7 @@ INSTRUCTION (l_mod) {
 }
 
 INSTRUCTION (l_debug) {
-	printf("Runtime: %u cycles\n", runtime.sim.cycles);
+	printf("Runtime: %llu cycles\n", runtime.sim.cycles);
 }
 
 // Secure Int
@@ -2617,7 +2617,7 @@ INSTRUCTION (le_enc) {
 	mpz_init(mpz_mD);
 	mpz_init(mpz_mA);
 	e3_set_mpz(mpz_mA, mA, eds);
-
+	gmp_printf("le.enc\n");
 	e3_encrypt(mpz_mD, mpz_mA, eds);
 	e3_set_e3reg(mD, mpz_mD, ees);
 
@@ -2720,7 +2720,7 @@ INSTRUCTION (le_mfer) {
 	uimm = e3_filter_imm(uimm);
 
 	rD = cpu_state.e3reg[mA][uimm];
-
+	gmp_printf("le.mfer\n");
 	SET_PARAM0(rD);
 	//printf("le.mfer out\n");
 }
@@ -2734,7 +2734,7 @@ INSTRUCTION (le_mter) {
 	orreg_t uimm = PARAM2;
 
 	uimm = e3_filter_imm(uimm);
-
+	gmp_printf("le.mter\n");
 	cpu_state.e3reg[mD][uimm] = rA;
 	//printf("le.mter out\n");
 }
@@ -2864,7 +2864,7 @@ INSTRUCTION (le_add) {
 	e3_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_add(mpz_mD, mpz_mA, mpz_mB);
-	//gmp_printf("le.add -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
+	gmp_printf("le.add -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
@@ -2888,7 +2888,7 @@ INSTRUCTION (le_and) {
 	e3_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_and(mpz_mD, mpz_mA, mpz_mB);
-
+	gmp_printf("le.and -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 	mpz_clear(mpz_mD);
@@ -2902,6 +2902,7 @@ INSTRUCTION (le_not) {
 	orreg_t mD = PARAM0;
 	orreg_t mA = PARAM1;
 	e3_not(mD, mA, reglen_bit);
+	gmp_printf("le.not\n");
 	/*mpz_t mpz_mD, mpz_mA;
 	mpz_init(mpz_mD);
 	mpz_init(mpz_mA);
@@ -2929,7 +2930,7 @@ INSTRUCTION (le_or) {
 	e3_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_ior(mpz_mD, mpz_mA, mpz_mB);
-
+	gmp_printf("le.or -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 	mpz_clear(mpz_mA);
@@ -2952,7 +2953,7 @@ INSTRUCTION (le_cmov) {
 		e3_set_mpz(mpz_mD, mA, reglen_bit);
 	else
 		e3_set_mpz(mpz_mD, mB, reglen_bit);
-
+	gmp_printf("le.cmov\n");
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
@@ -2967,7 +2968,7 @@ INSTRUCTION (le_dec) {
 	e3_set_mpz(mpz_mD, mD, reglen_bit);
 
 	mpz_sub_ui(mpz_mD, mpz_mD, 1);
-	
+	gmp_printf("le.dec -> mD: %Zx\n", mpz_mD);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
@@ -2997,7 +2998,7 @@ INSTRUCTION (le_divs) {
 		if (signB) e3_twos_complement(mpz_mB, reglen_bit);
 
 		mpz_tdiv_q(mpz_mD, mpz_mA, mpz_mB);
-
+		gmp_printf("le.divs -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		if (signA ^ signB) e3_twos_complement(mpz_mD, reglen_bit);
 		e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
@@ -3030,7 +3031,7 @@ INSTRUCTION (le_divu) {
 		e3_set_mpz(mpz_mA, mA, reglen_bit);
 
 		mpz_tdiv_q(mpz_mD, mpz_mA, mpz_mB);
-
+		gmp_printf("le.divu -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 		mpz_clear(mpz_mA);
@@ -3059,7 +3060,7 @@ INSTRUCTION (le_eq) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) == 0);
 	mpz_set_ui(mpz_mD, cmp);
-
+	gmp_printf("le.eq -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 	mpz_clear(mpz_mA);
@@ -3082,6 +3083,7 @@ INSTRUCTION (le_xor) {
 	e3_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_xor(mpz_mD, mpz_mA, mpz_mB);
+	gmp_printf("le.xor -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -3110,6 +3112,7 @@ INSTRUCTION (le_pows) {
 	if (signA) e3_twos_complement(mpz_mA, reglen_bit);
 
 	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_limit);
+	gmp_printf("le.pows -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 	mpz_clear(mpz_limit);
@@ -3136,6 +3139,7 @@ INSTRUCTION (le_powu) {
 	mpz_mul_2exp(mpz_limit, mpz_limit, reglen_bit);
 
 	mpz_powm(mpz_mD, mpz_mA, mpz_mB, mpz_limit);
+	gmp_printf("le.powu -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 	mpz_clear(mpz_limit);
@@ -3155,7 +3159,7 @@ INSTRUCTION (le_ff1) {
 
 	unsigned pos = e3_ff1(mA, reglen_bit);
 	mpz_set_ui(mpz_mD, pos);
-
+	gmp_printf("le.ff1\n");
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);	
 }
@@ -3171,7 +3175,7 @@ INSTRUCTION (le_fl1) {
 
 	unsigned pos = e3_fl1(mA, reglen_bit);
 	mpz_set_ui(mpz_mD, pos);
-
+	gmp_printf("le.fl1\n");
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);	
 }
@@ -3194,6 +3198,7 @@ INSTRUCTION (le_gcd) {
 
 	mpz_gcd(mpz_mD, mpz_mA, mpz_mB);
 	mpz_invert(mpz_mE, mpz_mA, mpz_mB);
+	gmp_printf("le.gcd -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -3231,7 +3236,7 @@ INSTRUCTION (le_ges) {
 
 		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) <= 0) : (mpz_cmp(mpz_mA, mpz_mB) >= 0));
 		mpz_set_ui(mpz_mD, cmp);
-		//gmp_printf("le_ges -> mpz_mD: %Zx\tmpz_mA: %Zx\tmpz_mB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
+		gmp_printf("le.ges -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		mpz_clear(mpz_mA);
 		mpz_clear(mpz_mB);
 	}
@@ -3256,7 +3261,7 @@ INSTRUCTION (le_geu) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) >= 0);
 	mpz_set_ui(mpz_mD, cmp);
-
+	gmp_printf("le.geu -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 	mpz_clear(mpz_mA);
@@ -3292,7 +3297,7 @@ INSTRUCTION (le_gts) {
 
 		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) < 0) : (mpz_cmp(mpz_mA, mpz_mB) > 0));
 		mpz_set_ui(mpz_mD, cmp);
-
+		gmp_printf("le.gts -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		mpz_clear(mpz_mA);
 		mpz_clear(mpz_mB);
 	}
@@ -3317,6 +3322,7 @@ INSTRUCTION (le_gtu) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) > 0);
 	mpz_set_ui(mpz_mD, cmp);
+	gmp_printf("le.gtu -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -3334,7 +3340,7 @@ INSTRUCTION (le_inc) {
 	e3_set_mpz(mpz_mD, mD, reglen_bit);
 
 	mpz_add_ui(mpz_mD, mpz_mD, 1);
-	
+	gmp_printf("le.inc -> mD: %Zx\n", mpz_mD);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 	mpz_clear(mpz_mD);
 }
@@ -3367,6 +3373,7 @@ INSTRUCTION (le_les) {
 
 		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) >= 0) : (mpz_cmp(mpz_mA, mpz_mB) <= 0));
 		mpz_set_ui(mpz_mD, cmp);
+		gmp_printf("le.les -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		mpz_clear(mpz_mA);
 		mpz_clear(mpz_mB);
 	}
@@ -3391,6 +3398,7 @@ INSTRUCTION (le_leu) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) <= 0);
 	mpz_set_ui(mpz_mD, cmp);
+	gmp_printf("le.leu -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -3426,6 +3434,7 @@ INSTRUCTION (le_lts) {
 
 		unsigned cmp = (signA ? (mpz_cmp(mpz_mA, mpz_mB) > 0) : (mpz_cmp(mpz_mA, mpz_mB) < 0));
 		mpz_set_ui(mpz_mD, cmp);
+		gmp_printf("le.lts -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		mpz_clear(mpz_mA);
 		mpz_clear(mpz_mB);
 	}
@@ -3450,6 +3459,7 @@ INSTRUCTION (le_ltu) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) < 0);
 	mpz_set_ui(mpz_mD, cmp);
+	gmp_printf("le.ltu -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -3473,6 +3483,7 @@ INSTRUCTION (le_land) {
 
 	unsigned cmp = (mpz_cmp_ui(mpz_mA, 0) && mpz_cmp_ui(mpz_mB, 0));
 	mpz_set_ui(mpz_mD, cmp);
+	gmp_printf("le.land -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -3493,6 +3504,7 @@ INSTRUCTION (le_lnot) {
 
 	unsigned cmp = !mpz_cmp_ui(mpz_mA, 0);
 	mpz_set_ui(mpz_mD, cmp);
+	gmp_printf("le.lnot -> mD: %Zx\tmA: %Zx\n", mpz_mD, mpz_mA);
 	mpz_clear(mpz_mA);
 
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
@@ -3515,6 +3527,7 @@ INSTRUCTION (le_lor) {
 
 	unsigned cmp = (mpz_cmp_ui(mpz_mA, 0) || mpz_cmp_ui(mpz_mB, 0));
 	mpz_set_ui(mpz_mD, cmp);
+	gmp_printf("le.lor -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -3549,7 +3562,7 @@ INSTRUCTION (le_mods) {
 		mpz_mod(mpz_mD, mpz_mA, mpz_mB);
 		if (signA) e3_twos_complement(mpz_mD, reglen_bit);
 		e3_set_e3reg(mD, mpz_mD, reglen_bit);
-
+		gmp_printf("le.mods -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		mpz_clear(mpz_mA);
 		mpz_clear(mpz_mD);
 	}
@@ -3581,7 +3594,7 @@ INSTRUCTION (le_modu) {
 		e3_set_mpz(mpz_mA, mA, reglen_bit);
 
 		mpz_mod(mpz_mD, mpz_mA, mpz_mB);
-
+		gmp_printf("le.modu -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 		e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 		mpz_clear(mpz_mA);
@@ -3622,6 +3635,7 @@ INSTRUCTION (le_macs) {
 	if (signA ^ signB) e3_twos_complement(mpz_mA, reglen_bit);
 
 	mpz_add(mpz_mD, mpz_mD, mpz_mA);
+	gmp_printf("le.macs -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 	mpz_clear(mpz_mA);
@@ -3646,6 +3660,7 @@ INSTRUCTION (le_macu) {
 
 	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
 	mpz_add(mpz_mD, mpz_mD, mpz_mA);
+	gmp_printf("le.macu -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -3679,6 +3694,7 @@ INSTRUCTION (le_msbs) {
 	if (!(signA ^ signB)) e3_twos_complement(mpz_mA, reglen_bit);
 
 	mpz_add(mpz_mD, mpz_mD, mpz_mA);
+	gmp_printf("le.msbs -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 	mpz_clear(mpz_mA);
@@ -3704,6 +3720,7 @@ INSTRUCTION (le_msbu) {
 	mpz_mul(mpz_mA, mpz_mA, mpz_mB);
 	e3_twos_complement(mpz_mA, reglen_bit);
 	mpz_add(mpz_mD, mpz_mD, mpz_mA);
+	gmp_printf("le.msbu -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 	mpz_clear(mpz_mA);
@@ -3732,7 +3749,7 @@ INSTRUCTION (le_muls) {
 	if (signB) e3_twos_complement(mpz_mB, reglen_bit);
 
 	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
-
+	gmp_printf("le.muls -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -3756,7 +3773,7 @@ INSTRUCTION (le_mulu) {
 	e3_set_mpz(mpz_mB, mB, reglen_bit);
 
 	mpz_mul(mpz_mD, mpz_mA, mpz_mB);
-
+	gmp_printf("le.mulu -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -3780,7 +3797,7 @@ INSTRUCTION (le_ne) {
 
 	unsigned cmp = (mpz_cmp(mpz_mA, mpz_mB) != 0);
 	mpz_set_ui(mpz_mD, cmp);
-
+	gmp_printf("le.ne -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mB);
 
@@ -3791,7 +3808,7 @@ INSTRUCTION (le_ne) {
 INSTRUCTION (le_rand) {
 	unsigned reglen_bit = e3_get_effective_decrypted_size();
 	orreg_t mD = PARAM0;
-	
+	gmp_printf("le.rand\n");
 	e3_rand(mD, reglen_bit);
 }
 
@@ -3826,7 +3843,7 @@ INSTRUCTION (le_ror) {
 
 	// merging parts
 	mpz_xor(mpz_mD, mpz_mA, mpz_mB);
-
+	gmp_printf("le.ror -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 	mpz_clear(mask);
@@ -3854,7 +3871,7 @@ INSTRUCTION (le_sll) {
 	mpz_and(mpz_mB, mpz_mB, mask);
 	unsigned shift = mpz_get_ui(mpz_mB);
 	mpz_mul_2exp(mpz_mD, mpz_mA, shift);
-
+	gmp_printf("le.sll -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 	mpz_clear(mask);
@@ -3886,7 +3903,7 @@ INSTRUCTION (le_sra) {
 	mpz_and(mpz_mB, mpz_mB, mask);
 	unsigned shift = mpz_get_ui(mpz_mB);
 	mpz_tdiv_q_2exp(mpz_mD, mpz_mA, shift);
-
+	gmp_printf("le.sra -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 	e3_extend_sign(mD, signA, reglen_bit);
 
@@ -3915,7 +3932,7 @@ INSTRUCTION (le_srl) {
 	mpz_and(mpz_mB, mpz_mB, mask);
 	unsigned shift = mpz_get_ui(mpz_mB);
 	mpz_tdiv_q_2exp(mpz_mD, mpz_mA, shift);
-
+	gmp_printf("le.srl -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 	mpz_clear(mask);
@@ -3940,7 +3957,7 @@ INSTRUCTION (le_sub) {
 
 	e3_twos_complement(mpz_mB, reglen_bit);
 	mpz_add(mpz_mD, mpz_mA, mpz_mB);
-
+	gmp_printf("le.sub -> mD: %Zx\tmA: %Zx\tmB: %Zx\n", mpz_mD, mpz_mA, mpz_mB);
 	e3_set_e3reg(mD, mpz_mD, reglen_bit);
 
 	mpz_clear(mpz_mA);
