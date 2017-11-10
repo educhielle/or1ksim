@@ -1263,6 +1263,7 @@ INSTRUCTION (l_mod) {
 
 INSTRUCTION (l_debug) {
 	printf("Runtime: %llu cycles\n", runtime.sim.cycles);
+	runtime.sim.cycles = 0;
 }
 
 // Secure Int
