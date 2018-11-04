@@ -2619,9 +2619,15 @@ INSTRUCTION (le_enc) {
 	mpz_init(mpz_mA);
 	e3_set_mpz(mpz_mA, mA, eds);
 	gmp_printf("le.enc\n");
+  gmp_printf("mD: %d\n", mD);
+  gmp_printf("mA: %d\n", mA);
+  gmp_printf("%Zx\n", mpz_mD);
+  gmp_printf("%Zx\n", mpz_mA);
+  gmp_printf("%d\n", eds);
 	e3_encrypt(mpz_mD, mpz_mA, eds);
+  printf("XX\n");
 	e3_set_e3reg(mD, mpz_mD, ees);
-
+  printf("MALAKIA\n");
 	mpz_clear(mpz_mA);
 	mpz_clear(mpz_mD);
 }
@@ -2754,12 +2760,14 @@ INSTRUCTION (le_mfspr) {
 
 INSTRUCTION (le_mtspr) {
 	unsigned reglen_bit = e3_get_effective_encrypted_size();
-
+  printf("le.mtspr\n");
 	orreg_t esrD = PARAM0;
 	orreg_t mA = PARAM1;
 
 	if (esrD == E3_MOD)
+  {
 		e3_copy(cpu_state.e3esr[esrD],cpu_state.e3reg[mA], reglen_bit);
+  }
 	else if (esrD == E3_PUB)
 	{
 		e3_clear(cpu_state.e3esr[E3_PRI]);

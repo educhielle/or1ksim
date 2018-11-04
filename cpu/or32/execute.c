@@ -700,7 +700,7 @@ e3_set_mpz_p(mpz_t* mpz_mD, unsigned *vA, unsigned lsb_pos, unsigned msb_pos)
 {
 	unsigned lsw_pos = lsb_pos / E3_STDWORDSIZE;
 	unsigned msw_pos = msb_pos / E3_STDWORDSIZE;
-	//printf("msw: %u\tlsw: %u\n", msw_pos, lsw_pos);
+	// printf("msw: %u\tlsw: %u\n", msw_pos, lsw_pos);
 	mpz_t baseWord;
 	mpz_init_set_str(baseWord, E3_STDHEXBASE, 16);
 
@@ -709,7 +709,7 @@ e3_set_mpz_p(mpz_t* mpz_mD, unsigned *vA, unsigned lsb_pos, unsigned msb_pos)
 	for (unsigned i = msw_pos - 1; (i+1) > lsw_pos; i--)
 	{
 		mpz_mul(mpz_mD, mpz_mD, baseWord);
-		//printf("vA[%d] = %u\n", i, *(vA+i));
+		// printf("e3 vA[%d] = %u\n", i, *(vA+i));
 		mpz_add_ui(mpz_mD, mpz_mD, vA[i]);
 	}
 }
@@ -738,7 +738,7 @@ e3_copy(unsigned vD[], unsigned vA[], unsigned reglen_bits)
 
 	for (unsigned i = 0; i < reglen_words; i++)
 	{
-		//printf("vA[%u] = %u\n", i, vA[i]);
+		// printf("vA[%u] = %u\n", i, vA[i]);
 		vD[i] = vA[i];
 	}
 }
@@ -761,6 +761,7 @@ e3_random(mpz_t* r, mpz_t limit)
 	gmp_randinit_default(state);
 	gmp_randseed_ui(state, rand());
 	mpz_init(r);
+  // gmp_printf("Limit: %Zx\n", limit);
 	mpz_urandomm(r, state, limit);
 }
 
@@ -993,10 +994,9 @@ e3_encryptPaillier(mpz_t* c, mpz_t m)
 	do
 	{
 		e3_random(r, n);
-		mpz_gcd(gcd, r, n);
+    mpz_gcd(gcd, r, n);
 		//if (mpz_cmp_ui(gcd,1)) printf("hit\n");
 	} while (mpz_cmp_ui(gcd, 1));
-
 //	gmp_printf("r: %Zx\n", r);
 
 	mpz_powm(g, g, m, n2);
@@ -1004,7 +1004,6 @@ e3_encryptPaillier(mpz_t* c, mpz_t m)
 	mpz_mul(c, g, r);
 	mpz_mod(c, c, n2);
 //	gmp_printf("c: %Zx\n", c);
-
 	mpz_clear(gcd);
 	mpz_clear(g);
 	mpz_clear(r);
@@ -1103,10 +1102,14 @@ e3_encrypt(mpz_t* mpz_mD, mpz_t mpz_mA, unsigned reglen_bit)
 	mpz_t mask;
 	e3_mpz_mask(mask, reglen_bit);
 	mpz_and(mpz_mA, mpz_mA, mask);
-
-	if (e3_isRSA()) e3_encryptRSA(mpz_mD, mpz_mA, E3_PUB, E3_MOD);
-	else if (e3_isPaillier()) e3_encryptPaillier(mpz_mD, mpz_mA);
-
+	if (e3_isRSA())
+  {
+    e3_encryptRSA(mpz_mD, mpz_mA, E3_PUB, E3_MOD);
+  } 
+	else if (e3_isPaillier())
+  {
+    e3_encryptPaillier(mpz_mD, mpz_mA);
+  } 
 	mpz_clear(mask);
 }
 
